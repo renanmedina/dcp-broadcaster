@@ -1,0 +1,22 @@
+version: "3.9"
+services:
+  database:
+    image: postgres:16-alpine
+    container_name: cdp-broadcaster-db
+    restart: always
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_HOST_AUTH_METHOD: trust
+    volumes:
+      - ./db/create-db.sql:/docker-entrypoint-initdb.d/create_database.sql
+  metabase:
+    image: metabase/metabase:latest
+    container_name: cdp-broadcaster-metabase
+    ports: 
+      - "3000:3000"
+volumes:
+  db-data:
+    driver: "local"
