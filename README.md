@@ -1,9 +1,9 @@
-# cdp-broadcaster
+# dcp-broadcaster
 Application to monitor coding daily problems received by email and broadcast to users using messaging apps
 
 #### Basic Application Understanding
 
-![Application Diagram](docs/basic_application_understanding.jpg)
+![Application Diagram](docs/basic_application_understanding.png)
 
 
 #### Dependencies

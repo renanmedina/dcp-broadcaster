@@ -1,2 +1,2 @@
-DROP DATABASE IF EXISTS cdp_broadcaster;
-CREATE DATABASE cdp_broadcaster;
+DROP DATABASE IF EXISTS dcp_broadcaster;
+CREATE DATABASE dcp_broadcaster;

@@ -2,7 +2,7 @@ version: "3.9"
 services:
   database:
     image: postgres:16-alpine
-    container_name: cdp-broadcaster-db
+    container_name: dcp-broadcaster-db
     restart: always
     ports:
       - "5432:5432"
@@ -14,7 +14,7 @@ services:
       - ./db/create-db.sql:/docker-entrypoint-initdb.d/create_database.sql
   metabase:
     image: metabase/metabase:latest
-    container_name: cdp-broadcaster-metabase
+    container_name: dcp-broadcaster-metabase
     ports: 
       - "3000:3000"
 volumes:

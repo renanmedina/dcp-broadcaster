@@ -1,6 +1,6 @@
 package main
 
-import "github.com/renanmedina/cdp-broadcaster/utils"
+import "github.com/renanmedina/dcp-broadcaster/utils"
 
 func main() {
 	logger := utils.GetApplicationLogger()

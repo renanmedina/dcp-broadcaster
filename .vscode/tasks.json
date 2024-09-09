@@ -15,7 +15,7 @@
         "reveal": "always",
         "panel": "new",
         "close": true,
-        "group": "cdp-broadcaster-runtime"
+        "group": "dcp-broadcaster-runtime"
       }
     }
   ]
