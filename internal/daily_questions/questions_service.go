@@ -40,7 +40,12 @@ func (s *QuestionsService) GetNewMessages() ([]Question, error) {
 	var newMessages []Question
 	for msg := range messages {
 		if msg.Envelope.From[0].Address() == SENDER_LOOKUP_EMAIL {
-			newMessages = append(newMessages, NewQuestionFromEmailMessage(msg))
+			metadata := parseQuestionEmailMessage(msg)
+
+			if metadata.Valid() {
+				question := NewQuestionFromEmailMetadata(metadata)
+				newMessages = append(newMessages, question)
+			}
 		}
 	}
 

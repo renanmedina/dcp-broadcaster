@@ -107,6 +107,30 @@ func (adapter *DatabaseAdapdater) Insert(tableName string, fieldsAndValues map[s
 	return true, nil
 }
 
+func (adapter *DatabaseAdapdater) Select(tableName string, wheres interface{}) (*sql.Rows, error) {
+	rows, errSelect := squirrel.Select("*").
+		From(tableName).
+		Where(wheres).
+		RunWith(adapter.db).
+		Query()
+
+	if errSelect != nil {
+		return nil, errSelect
+	}
+
+	return rows, nil
+}
+
+func (adapter *DatabaseAdapdater) SelectOne(tableName string, wheres interface{}) *squirrel.RowScanner {
+	scanner := squirrel.Select("*").
+		From(tableName).
+		Where(wheres).
+		RunWith(adapter.db).
+		QueryRow()
+
+	return &scanner
+}
+
 func (adapter *DatabaseAdapdater) Update(tableName string, fieldsAndValues map[string]interface{}, wheres interface{}) (bool, error) {
 	updateBuilder := squirrel.Update(tableName)
 
@@ -123,6 +147,14 @@ func (adapter *DatabaseAdapdater) Update(tableName string, fieldsAndValues map[s
 	}
 
 	return true, nil
+}
+
+func (adapter *DatabaseAdapdater) UpdateById(tableName string, id string, fieldsAndValues map[string]interface{}) (bool, error) {
+	wheres := map[string]interface{}{
+		"id": id,
+	}
+
+	return adapter.Update(tableName, fieldsAndValues, wheres)
 }
 
 func (adapter *DatabaseAdapdater) Delete(tableName string, wheres interface{}) (bool, error) {

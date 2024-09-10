@@ -1,5 +1,5 @@
 CREATE TABLE IF NOT EXISTS users(
-  user_id SERIAL NOT NULL PRIMARY KEY,
+  id UUID NOT NULL PRIMARY KEY DEFAULT gen_random_uuid(),
   username varchar(60) NOT NULL,
   phone_number varchar(18) NULL DEFAULT NULL,
   created_at timestamp NOT NULL DEFAULT NOW(),
