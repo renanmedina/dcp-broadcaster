@@ -14,20 +14,48 @@ const (
 )
 
 type QuestionsService struct {
-	client *client.Client
+	client    *client.Client
+	inboxName string
 }
 
-func (s *QuestionsService) GetNewQuestions() ([]Question, error) {
-	mailbox, err := s.client.Select("INBOX", true)
+func (s *QuestionsService) GetNewQuestions(quantity uint32) ([]Question, error) {
+	messages, err := s.fetchMessages(quantity)
+
+	if err != nil {
+		return nil, err
+	}
+
+	newMessages := buildQuestionsFromMessages(messages)
+	return newMessages, nil
+}
+
+func (s *QuestionsService) GetQuestionsFromAfter(threshold time.Time) ([]Question, error) {
+	messages, err := s.fetchMessages(0)
+
+	if err != nil {
+		return nil, err
+	}
+
+	newMessages := buildQuestionsFromMessages(messages)
+	return newMessages, nil
+}
+
+func (s *QuestionsService) fetchMessages(quantity uint32) (chan *imap.Message, error) {
+	if quantity == 0 {
+		quantity = 1
+	}
+
+	mailbox, err := s.client.Select(s.inboxName, true)
 
 	if err != nil {
 		return nil, err
 	}
 
 	seqSet := new(imap.SeqSet)
-	seqSet.AddRange(1, mailbox.Messages)
+	realQuantity := (quantity - 1)
+	seqSet.AddRange(mailbox.Messages, mailbox.Messages-realQuantity)
 
-	messages := make(chan *imap.Message, 10)
+	messages := make(chan *imap.Message, quantity)
 	section := &imap.BodySectionName{}
 	items := []imap.FetchItem{section.FetchItem(), imap.FetchEnvelope}
 
@@ -37,23 +65,7 @@ func (s *QuestionsService) GetNewQuestions() ([]Question, error) {
 		}
 	}()
 
-	var newMessages []Question
-	for msg := range messages {
-		if msg.Envelope.From[0].Address() == SENDER_LOOKUP_EMAIL {
-			metadata := parseQuestionEmailMessage(msg)
-
-			if metadata.Valid() {
-				question := NewQuestionFromEmailMetadata(metadata)
-				newMessages = append(newMessages, question)
-			}
-		}
-	}
-
-	return newMessages, nil
-}
-
-func (s *QuestionsService) GetQuestionsFromAfter(threshold time.Time) ([]Question, error) {
-	return nil, nil
+	return messages, nil
 }
 
 func NewQuestionsService() (QuestionsService, error) {
@@ -68,5 +80,22 @@ func NewQuestionsService() (QuestionsService, error) {
 		return QuestionsService{}, err
 	}
 
-	return QuestionsService{imapClient}, nil
+	return QuestionsService{imapClient, "INBOX"}, nil
+}
+
+func buildQuestionsFromMessages(messages chan *imap.Message) []Question {
+	var newMessages []Question
+
+	for msg := range messages {
+		if msg.Envelope.From[0].Address() == SENDER_LOOKUP_EMAIL {
+			metadata := parseQuestionEmailMessage(msg)
+
+			if metadata.Valid() {
+				question := NewQuestionFromEmailMetadata(metadata)
+				newMessages = append(newMessages, question)
+			}
+		}
+	}
+
+	return newMessages
 }

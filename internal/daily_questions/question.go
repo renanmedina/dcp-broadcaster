@@ -33,6 +33,18 @@ func (q *Question) ToDbMap() map[string]interface{} {
 	}
 }
 
+func (q *Question) ToLogMap() map[string]interface{} {
+	return map[string]interface{}{
+		"id":               q.Id,
+		"original_id":      q.OriginalId,
+		"difficulty_level": q.DifficultyLevel,
+		"title":            q.Title,
+		"question_text":    q.Text,
+		"company_name":     q.CompanyName,
+		"received_at":      q.ReceivedAt,
+	}
+}
+
 func NewQuestionFromEmailMetadata(metadata QuestionEmailMetadata) Question {
 	return Question{
 		Id:              uuid.New(),

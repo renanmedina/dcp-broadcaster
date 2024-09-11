@@ -1,6 +1,6 @@
 CREATE TABLE IF NOT EXISTS daily_questions(
   id UUID NOT NULL PRIMARY KEY DEFAULT gen_random_uuid(),
-  original_id varchar(200) NULL,
+  original_id varchar(200) NOT NULL UNIQUE,
   difficulty_level varchar(8) NOT NULL,
   received_at timestamp NOT NULL,
   title VARCHAR(500) NOT NULL,

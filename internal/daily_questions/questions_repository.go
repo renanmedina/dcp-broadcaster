@@ -4,11 +4,13 @@ import (
 	"errors"
 
 	"github.com/Masterminds/squirrel"
+	"github.com/lib/pq"
 	"github.com/renanmedina/dcp-broadcaster/utils"
 )
 
 const (
-	QUESTIONS_TABLE_NAME = "daily_questions"
+	QUESTIONS_TABLE_NAME    = "daily_questions"
+	UNIQUE_CONSTRAINT_ERROR = "unique_violation"
 )
 
 type QuestionsRepository struct {
@@ -34,9 +36,13 @@ func (r *QuestionsRepository) Save(question Question) (*Question, error) {
 		_, err := r.db.Insert(QUESTIONS_TABLE_NAME, question.ToDbMap())
 
 		if err != nil {
-			return nil, err
+			if err, ok := err.(*pq.Error); ok {
+				// ignore duplicate inserts of original_id, doing this here do make usage of db constraint and not need to manually load to check if exists
+				if err.Code.Name() != UNIQUE_CONSTRAINT_ERROR {
+					return nil, err
+				}
+			}
 		}
-
 	} else {
 		_, err := r.db.UpdateById(QUESTIONS_TABLE_NAME, question.Id.String(), question.ToDbMap())
 

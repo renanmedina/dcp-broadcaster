@@ -13,23 +13,26 @@ type FetchNewQuestions struct {
 }
 
 func (uc *FetchNewQuestions) Execute() {
-	questions, err := uc.service.GetNewQuestions()
+	questions, err := uc.service.GetNewQuestions(1)
 
 	if err != nil {
 		uc.logger.Error(err.Error())
 	}
 
+	uc.processQuestions(questions)
+}
+
+func (uc *FetchNewQuestions) processQuestions(questions []Question) {
 	for _, question := range questions {
-		fmt.Println("ID:", question.Id)
-		fmt.Println("Title:", question.Title)
-		fmt.Println("Difficulty:", question.DifficultyLevel)
-		fmt.Println("CompanyName:", question.CompanyName)
-		fmt.Println("Date:", question.ReceivedAt)
-		fmt.Println("------------------------------------------------------------------------------------------------------")
+		uc.logger.Info("Processing message received from questions service", "question", question.ToLogMap())
 		_, err := uc.questionsRepository.Save(question)
 		if err != nil {
-			uc.logger.Fatal(err.Error())
+			errMsg := fmt.Sprintf("Failed processing message received from questions service: %s", err.Error())
+			uc.logger.Error(errMsg, "question", question.ToLogMap())
+			continue
 		}
+
+		uc.logger.Info("Processed message received from questions service", "question", question.ToLogMap())
 	}
 }
 
