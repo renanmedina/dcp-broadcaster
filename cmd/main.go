@@ -30,6 +30,6 @@ func main() {
 		logger.Error(err.Error())
 	}
 
-	receiver.Work()
+	receiver.Work(30 * time.Second)
 	logger.Info("Questions receiver worker finished successfully")
 }

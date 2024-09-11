@@ -49,8 +49,8 @@ func (r *QuestionsRepository) Save(question Question) (*Question, error) {
 	return &question, nil
 }
 
-func NewQuestionsRepository() *QuestionsRepository {
-	return &QuestionsRepository{
+func NewQuestionsRepository() QuestionsRepository {
+	return QuestionsRepository{
 		db: utils.GetDatabase(),
 	}
 }

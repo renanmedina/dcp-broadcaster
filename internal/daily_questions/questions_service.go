@@ -17,7 +17,7 @@ type QuestionsService struct {
 	client *client.Client
 }
 
-func (s *QuestionsService) GetNewMessages() ([]Question, error) {
+func (s *QuestionsService) GetNewQuestions() ([]Question, error) {
 	mailbox, err := s.client.Select("INBOX", true)
 
 	if err != nil {
@@ -52,7 +52,7 @@ func (s *QuestionsService) GetNewMessages() ([]Question, error) {
 	return newMessages, nil
 }
 
-func (s *QuestionsService) GetMessagesFromAfter(threshold time.Time) ([]Question, error) {
+func (s *QuestionsService) GetQuestionsFromAfter(threshold time.Time) ([]Question, error) {
 	return nil, nil
 }
 

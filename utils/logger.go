@@ -52,6 +52,11 @@ func (appLogger *ApplicationLogger) Debug(msg string, args ...any) {
 	appLogger.logger.Debug(msg, args...)
 }
 
+func (appLogger *ApplicationLogger) Fatal(msg string, args ...any) {
+	appLogger.logger.Error(msg, args...)
+	panic(msg)
+}
+
 func LogInfo(msg string, args ...any) {
 	logger.Info(msg, args...)
 }

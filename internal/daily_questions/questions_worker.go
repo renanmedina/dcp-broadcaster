@@ -1,8 +1,8 @@
 package daily_questions
 
 import (
-	"fmt"
 	"log"
+	"time"
 
 	"github.com/renanmedina/dcp-broadcaster/utils"
 )
@@ -12,25 +12,19 @@ type QuestionsWorker struct {
 	logger           *utils.ApplicationLogger
 }
 
-func (r *QuestionsWorker) Work() {
-	questions, err := r.questionsService.GetNewMessages()
+func (r *QuestionsWorker) Work(every time.Duration) {
+	use_case, err := NewFetchNewQuestions()
 
 	if err != nil {
-		r.logger.Error(err.Error())
+		log.Fatal(err.Error())
 	}
 
-	repo := NewQuestionsRepository()
+	ticker := time.NewTicker(every)
 
-	for _, question := range questions {
-		fmt.Println("ID:", question.Id)
-		fmt.Println("Title:", question.Title)
-		fmt.Println("Difficulty:", question.DifficultyLevel)
-		fmt.Println("CompanyName:", question.CompanyName)
-		fmt.Println("Date:", question.ReceivedAt)
-		fmt.Println("------------------------------------------------------------------------------------------------------")
-		_, err := repo.Save(question)
-		if err != nil {
-			log.Fatal(err.Error())
+	for {
+		select {
+		case <-ticker.C:
+			use_case.Execute()
 		}
 	}
 }
