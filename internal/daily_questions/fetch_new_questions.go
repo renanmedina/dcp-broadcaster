@@ -3,6 +3,7 @@ package daily_questions
 import (
 	"fmt"
 
+	"github.com/renanmedina/dcp-broadcaster/internal/event_store"
 	"github.com/renanmedina/dcp-broadcaster/utils"
 )
 
@@ -10,6 +11,7 @@ type FetchNewQuestions struct {
 	service             QuestionsService
 	questionsRepository QuestionsRepository
 	logger              *utils.ApplicationLogger
+	publisher           *event_store.EventPublisher
 }
 
 func (uc *FetchNewQuestions) Execute() {
@@ -33,6 +35,7 @@ func (uc *FetchNewQuestions) processQuestions(questions []Question) {
 		}
 
 		uc.logger.Info("Processed message received from questions service", "question", question.ToLogMap())
+		uc.publisher.Publish(newQuestionCreated(question))
 	}
 }
 
@@ -47,5 +50,6 @@ func NewFetchNewQuestions() (*FetchNewQuestions, error) {
 		svc,
 		NewQuestionsRepository(),
 		utils.GetApplicationLogger(),
+		newEventPublisher(),
 	}, nil
 }

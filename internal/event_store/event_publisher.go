@@ -20,17 +20,24 @@ type EventHandler interface {
 
 type EventPublisher struct {
 	handlers map[string][]EventHandler
+	logger   *utils.ApplicationLogger
+}
+
+func EventNameFor(evtStruct interface{}) string {
+	return reflect.TypeOf(evtStruct).String()
 }
 
 func NewEventPublisher() *EventPublisher {
 	return &EventPublisher{
 		handlers: make(map[string][]EventHandler),
+		logger:   utils.GetApplicationLogger(),
 	}
 }
 
 func NewEventPublisherWith(handlersSetup map[string][]EventHandler) *EventPublisher {
 	return &EventPublisher{
 		handlers: handlersSetup,
+		logger:   utils.GetApplicationLogger(),
 	}
 }
 
@@ -41,7 +48,7 @@ func (p *EventPublisher) Publish(event PublishableEvent) bool {
 		go (func(evt PublishableEvent, handlers []EventHandler) {
 			for _, handler := range handlers {
 				logMsg := fmt.Sprintf("Calling handler %s for event %s", reflect.TypeOf(handler), event.Name())
-				utils.GetApplicationLogger().Info(logMsg)
+				p.logger.Info(logMsg)
 				handler.Handle(event)
 			}
 		})(event, eventHandlers)

@@ -11,3 +11,8 @@ CREATE TABLE IF NOT EXISTS daily_questions(
   updated_at timestamp NOT NULL DEFAULT NOW(),
   deleted_at timestamp NULL DEFAULT NULL
 );
+
+CREATE INDEX idx_questions_difficulty_level ON daily_questions(difficulty_level);
+CREATE INDEX idx_questions_received_at ON daily_questions(received_at);
+CREATE INDEX idx_questions_company_name ON daily_questions(company_name);
+CREATE INDEX idx_questions_original_id ON daily_questions(original_id);

@@ -6,3 +6,6 @@ CREATE TABLE IF NOT EXISTS users(
   updated_at timestamp NOT NULL DEFAULT NOW(),
   deleted_at timestamp NULL DEFAULT NULL
 );
+
+
+CREATE INDEX idx_users_phone_number ON users(phone_number);
