@@ -1,7 +1,6 @@
 package daily_questions
 
 import (
-	"log"
 	"time"
 
 	"github.com/renanmedina/dcp-broadcaster/utils"
@@ -12,11 +11,13 @@ type QuestionsWorker struct {
 	logger           *utils.ApplicationLogger
 }
 
-func (r *QuestionsWorker) Work(every time.Duration) {
+func (worker *QuestionsWorker) Work(every time.Duration) {
+	worker.logger.Info("Starting questions receiver worker")
+
 	use_case, err := NewFetchNewQuestions()
 
 	if err != nil {
-		log.Fatal(err.Error())
+		worker.logger.Fatal(err.Error())
 	}
 
 	ticker := time.NewTicker(every)

@@ -107,10 +107,15 @@ func (adapter *DatabaseAdapdater) Insert(tableName string, fieldsAndValues map[s
 	return true, nil
 }
 
-func (adapter *DatabaseAdapdater) Select(tableName string, wheres interface{}) (*sql.Rows, error) {
-	rows, errSelect := squirrel.Select("*").
+func (adapter *DatabaseAdapdater) Select(fields string, tableName string, wheres interface{}) (*sql.Rows, error) {
+	if fields == "" {
+		fields = "*"
+	}
+
+	rows, errSelect := squirrel.Select(fields).
 		From(tableName).
 		Where(wheres).
+		PlaceholderFormat(squirrel.Dollar).
 		RunWith(adapter.db).
 		Query()
 
@@ -121,11 +126,16 @@ func (adapter *DatabaseAdapdater) Select(tableName string, wheres interface{}) (
 	return rows, nil
 }
 
-func (adapter *DatabaseAdapdater) SelectOne(tableName string, wheres interface{}) *squirrel.RowScanner {
-	scanner := squirrel.Select("*").
+func (adapter *DatabaseAdapdater) SelectOne(fields string, tableName string, wheres interface{}) *squirrel.RowScanner {
+	if fields == "" {
+		fields = "*"
+	}
+
+	scanner := squirrel.Select(fields).
 		From(tableName).
 		Where(wheres).
 		RunWith(adapter.db).
+		PlaceholderFormat(squirrel.Dollar).
 		QueryRow()
 
 	return &scanner

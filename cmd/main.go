@@ -8,28 +8,35 @@ import (
 )
 
 func main() {
-	time.Local, _ = time.LoadLocation("America/Sao_Paulo")
 	logger := utils.GetApplicationLogger()
-	logger.Info("Starting Database connection")
-	db := utils.GetDatabase()
-	logger.Info("Database connection started successfully")
+	setup()
+	migrate(logger)
+	startWorker(30*time.Second, logger)
+}
 
+func startWorker(every time.Duration, logger *utils.ApplicationLogger) {
+	receiver, err := daily_questions.NewQuestionsReceiver()
+
+	if err != nil {
+		logger.Fatal(err.Error())
+	}
+
+	receiver.Work(every)
+}
+
+func setup() {
+	time.Local, _ = time.LoadLocation("America/Sao_Paulo")
+}
+
+func migrate(logger *utils.ApplicationLogger) {
+	db := utils.GetDatabase()
 	logger.Info("Migrating database")
 	err := db.Migrate("up")
 
 	if err != nil {
 		logger.Error(err.Error())
+		return
 	}
 
 	logger.Info("Migration success")
-
-	logger.Info("Starting questions receiver worker")
-	receiver, err := daily_questions.NewQuestionsReceiver()
-
-	if err != nil {
-		logger.Error(err.Error())
-	}
-
-	receiver.Work(10 * time.Second)
-	logger.Info("Questions receiver worker finished successfully")
 }

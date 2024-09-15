@@ -14,10 +14,13 @@ const (
 )
 
 type Configs struct {
-	DB_URL            string
-	DISCORD_BOT_TOKEN string
-	LOG_FORMAT        string
-	imapConfigs       *ImapConfigs
+	DB_URL              string
+	DISCORD_BOT_TOKEN   string
+	WHATSAPP_API_URL    string
+	WHATSAPP_API_TOKEN  string
+	WHATSAPP_SESSION_ID string
+	LOG_FORMAT          string
+	imapConfigs         *ImapConfigs
 }
 
 var loadedConfigs *Configs
@@ -51,9 +54,12 @@ func loadConfigs() *Configs {
 	}
 
 	return &Configs{
-		DB_URL:            os.Getenv("DB_URL"),
-		DISCORD_BOT_TOKEN: os.Getenv("DISCORD_BOT_TOKEN"),
-		LOG_FORMAT:        os.Getenv("LOG_FORMAT"),
+		DB_URL:              os.Getenv("DB_URL"),
+		DISCORD_BOT_TOKEN:   os.Getenv("DISCORD_BOT_TOKEN"),
+		WHATSAPP_API_URL:    os.Getenv("WHATSAPP_API_URL"),
+		WHATSAPP_API_TOKEN:  os.Getenv("WHATSAPP_API_TOKEN"),
+		WHATSAPP_SESSION_ID: os.Getenv("WHATSAPP_SESSION_ID"),
+		LOG_FORMAT:          os.Getenv("LOG_FORMAT"),
 		imapConfigs: &ImapConfigs{
 			ServerUrl:  os.Getenv("RECEIVER_SERVER"),
 			ServerPort: receiverServerPort,

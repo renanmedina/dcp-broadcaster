@@ -3,6 +3,7 @@ package daily_questions
 import (
 	"fmt"
 
+	"github.com/lib/pq"
 	"github.com/renanmedina/dcp-broadcaster/internal/event_store"
 	"github.com/renanmedina/dcp-broadcaster/utils"
 )
@@ -28,7 +29,15 @@ func (uc *FetchNewQuestions) processQuestions(questions []Question) {
 	for _, question := range questions {
 		uc.logger.Info("Processing message received from questions service", "question", question.ToLogMap())
 		_, err := uc.questionsRepository.Save(question)
+
 		if err != nil {
+			if err, ok := err.(*pq.Error); ok {
+				// ignore duplicate inserts of original_id, doing this here do make usage of db constraint and not need to manually load to check if exists
+				if err.Code.Name() != UNIQUE_CONSTRAINT_ERROR {
+					continue
+				}
+			}
+
 			errMsg := fmt.Sprintf("Failed processing message received from questions service: %s", err.Error())
 			uc.logger.Error(errMsg, "question", question.ToLogMap())
 			continue

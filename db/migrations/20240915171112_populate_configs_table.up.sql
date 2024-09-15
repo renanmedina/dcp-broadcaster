@@ -1,0 +1,1 @@
+INSERT INTO configs(config_key, config_value) VALUES('whatsapp_session_id', 'f8377d8d-a589-4242-9ba6-9486a04ef80c');

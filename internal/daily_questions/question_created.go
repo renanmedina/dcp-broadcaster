@@ -3,7 +3,7 @@ package daily_questions
 const QUESTION_CREATED_EVENT_NAME = "QuestionCreated"
 
 type QuestionCreated struct {
-	question Question
+	Question Question
 }
 
 func newQuestionCreated(question Question) QuestionCreated {
@@ -15,7 +15,7 @@ func (evt QuestionCreated) Name() string {
 }
 
 func (evt QuestionCreated) ObjectId() string {
-	return evt.question.Id.String()
+	return evt.Question.Id.String()
 }
 
 func (evt QuestionCreated) ObjectType() string {
@@ -23,5 +23,5 @@ func (evt QuestionCreated) ObjectType() string {
 }
 
 func (evt QuestionCreated) EventData() map[string]interface{} {
-	return evt.question.ToDbMap()
+	return evt.Question.ToDbMap()
 }
