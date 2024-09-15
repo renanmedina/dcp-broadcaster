@@ -16,7 +16,7 @@ type FetchNewQuestions struct {
 }
 
 func (uc *FetchNewQuestions) Execute() {
-	questions, err := uc.service.GetNewQuestions(1)
+	questions, err := uc.service.GetNewQuestions(3)
 
 	if err != nil {
 		uc.logger.Error(err.Error())

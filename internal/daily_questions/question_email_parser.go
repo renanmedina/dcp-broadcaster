@@ -63,7 +63,14 @@ func extractDifficulty(title string) string {
 }
 
 func parseMessageToText(bodyContent string) string {
-	return extractByRegex(bodyContent, `Good morning!(?s:.+)--------?`)
+	extracted := extractByRegex(bodyContent, `Good morning!(?s:.+)--------?`)
+	splits := strings.Split(extracted, "--------")
+
+	if len(splits) > 0 {
+		return strings.TrimSpace(splits[0])
+	}
+
+	return ""
 }
 
 func parseMessageToHtml(bodyContent string) string {
