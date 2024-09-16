@@ -54,7 +54,7 @@ services:
       - DB_URL=postgres://postgres:dcp-broadcaster-pwd@dcp-broadcaster-db:5432/dcp_broadcaster?sslmode=disable
       - DISCORD_BOT_TOKEN=
       - DISCORD_API_URL=https://discord.com/api/v10
-      - WHATSAPP_API_URL=http://dcp-broadcaster-whatsapp-api:3005
+      - WHATSAPP_API_URL=http://dcp-broadcaster-whatsapp-api:3000
       - WHATSAPP_API_TOKEN=local_whatsapp_api_key
       - WHATSAPP_SESSION_ID=f8377d8d-a589-4242-9ba6-9486a04ef80c
       - LOG_FORMAT=json
