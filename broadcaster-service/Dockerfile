@@ -10,7 +10,7 @@ COPY . .
 
 RUN CGO_ENABLED=0 GOOS=linux go build -o ./dist/dcp-broadcaster cmd/main.go
 
-FROM scratch
+FROM alpine:latest
 
 WORKDIR /app
 
