@@ -48,7 +48,7 @@ func (adapter *DatabaseAdapdater) GetConnection() *sql.DB {
 	return adapter.db
 }
 
-func (adapter *DatabaseAdapdater) GetMigrator() (*migrate.Migrate, error) {
+func (adapter *DatabaseAdapdater) GetMigrator(migrationsPath string) (*migrate.Migrate, error) {
 	driver, err := postgres.WithInstance(adapter.db, &postgres.Config{})
 
 	if err != nil {
@@ -56,7 +56,7 @@ func (adapter *DatabaseAdapdater) GetMigrator() (*migrate.Migrate, error) {
 	}
 
 	migrator, err := migrate.NewWithDatabaseInstance(
-		"file://db/migrations",
+		migrationsPath,
 		"postgres",
 		driver,
 	)
@@ -68,8 +68,8 @@ func (adapter *DatabaseAdapdater) GetMigrator() (*migrate.Migrate, error) {
 	return migrator, nil
 }
 
-func (adapter *DatabaseAdapdater) Migrate(dir string) error {
-	migrator, err := adapter.GetMigrator()
+func (adapter *DatabaseAdapdater) Migrate(dir string, migrationsPath string) error {
+	migrator, err := adapter.GetMigrator(migrationsPath)
 
 	if err != nil {
 		return err

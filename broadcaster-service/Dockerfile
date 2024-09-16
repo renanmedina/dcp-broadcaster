@@ -14,6 +14,7 @@ FROM scratch
 
 WORKDIR /app
 
-COPY --from=build ./dist/ ./
+COPY --from=build ./app/dist/ ./
+COPY --from=build ./app/db/ ./db/
 
 CMD ["./dcp-broadcaster"]

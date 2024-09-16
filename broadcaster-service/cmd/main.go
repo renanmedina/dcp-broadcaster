@@ -11,7 +11,7 @@ func main() {
 	logger := utils.GetApplicationLogger()
 	setup()
 	migrate(logger)
-	// startWorker(30*time.Second, logger)
+	startWorker(30*time.Second, logger)
 }
 
 func startWorker(every time.Duration, logger *utils.ApplicationLogger) {
@@ -31,7 +31,7 @@ func setup() {
 func migrate(logger *utils.ApplicationLogger) {
 	db := utils.GetDatabase()
 	logger.Info("Migrating database")
-	err := db.Migrate("up")
+	err := db.Migrate("up", utils.GetConfigs().MIGRATIONS_PATH)
 
 	if err != nil {
 		logger.Error(err.Error())

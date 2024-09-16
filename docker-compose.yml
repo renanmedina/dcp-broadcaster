@@ -1,40 +1,30 @@
 version: "3.9"
 services:
-  database:
+  dcp-broadcaster-db:
     image: postgres:16-alpine
     container_name: dcp-broadcaster-db
+    hostname: dcp-broadcaster-db
     restart: always
     ports:
       - "5432:5432"
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_HOST_AUTH_METHOD: trust
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=dcp-broadcaster-pwd
+      - POSTGRES_HOST_AUTH_METHOD=trust
     volumes:
       - ./broadcaster-service/db/create-db.sql:/docker-entrypoint-initdb.d/create_database.sql
-  metabase:
+    networks:
+      - dcp-broadcaster-network
+  dcp-broadcaster-metabase:
     image: metabase/metabase:latest
     container_name: dcp-broadcaster-metabase
     ports: 
       - "3000:3000"
-  dcp-broadcaster:
-    container_name: dcp-broadcaster-worker
-    build: ./broadcaster-service/
-    environment:
-      - ENV_NAME=staging
-      - DB_URL="postgres://postgres:postgres@localhost:5432/dcp_broadcaster?sslmode=disable"
-      - DISCORD_BOT_TOKEN=""
-      - DISCORD_API_URL="https://discord.com/api/v10"
-      - WHATSAPP_API_URL="http://localhost:3005"
-      - WHATSAPP_API_TOKEN="local_whatsapp_api_key"
-      - WHATSAPP_SESSION_ID="f8377d8d-a589-4242-9ba6-9486a04ef80c"
-      - LOG_FORMAT=json
-      - RECEIVER_SERVER=""
-      - RECEIVER_SERVER_PORT=993
-      - RECEIVER_USERNAME=""
-      - RECEIVER_PASSWORD=""
-  whatsapp_api:
+    networks:
+      - dcp-broadcaster-network
+  dcp-broadcaster-whatsapp-api:
     container_name: dcp-broadcaster-whatsapp-api
+    hostname: dcp-broadcaster-whatsapp-api
     build: ./whatsapp-api/
     ports: 
       - "3005:3000"
@@ -54,6 +44,36 @@ services:
       # - RECOVER_SESSIONS=TRUE # OPTIONAL, SHOULD WE RECOVER THE SESSION IN CASE OF PAGE FAILURES
     volumes:
       - ./whatsapp-api/sessions:/usr/src/app/sessions # Mount the local ./sessions/ folder to the container's /usr/src/app/sessions folder
+    networks:
+      - dcp-broadcaster-network
+  dcp-broadcaster:
+    container_name: dcp-broadcaster-worker
+    build: ./broadcaster-service/
+    environment:
+      - ENV_NAME=staging
+      - DB_URL=postgres://postgres:dcp-broadcaster-pwd@dcp-broadcaster-db:5432/dcp_broadcaster?sslmode=disable
+      - DISCORD_BOT_TOKEN=
+      - DISCORD_API_URL=https://discord.com/api/v10
+      - WHATSAPP_API_URL=http://dcp-broadcaster-whatsapp-api:3005
+      - WHATSAPP_API_TOKEN=local_whatsapp_api_key
+      - WHATSAPP_SESSION_ID=f8377d8d-a589-4242-9ba6-9486a04ef80c
+      - LOG_FORMAT=json
+      - MIGRATIONS_PATH=file://db/migrations
+    links:
+      - dcp-broadcaster-db
+      - dcp-broadcaster-whatsapp-api
+    depends_on:
+      - dcp-broadcaster-db
+      - dcp-broadcaster-whatsapp-api
+    networks:
+      - dcp-broadcaster-network
 volumes:
   db-data:
     driver: "local"
+  
+networks:
+  dcp-broadcaster-network:
+    name: "dcp-broadcaster-network"
+    driver: bridge
+    driver_opts:
+      com.docker.network.bridge.host_binding_ipv4: "127.0.0.1"

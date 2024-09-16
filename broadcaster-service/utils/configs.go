@@ -20,6 +20,7 @@ type Configs struct {
 	WHATSAPP_API_TOKEN  string
 	WHATSAPP_SESSION_ID string
 	LOG_FORMAT          string
+	MIGRATIONS_PATH     string
 	imapConfigs         *ImapConfigs
 }
 
@@ -43,8 +44,8 @@ func GetImapConfigs() *ImapConfigs {
 
 func loadConfigs() *Configs {
 	err := godotenv.Load()
-	if err != nil {
-		panic(err)
+	if err != nil && os.Getenv("ENV_NAME") == "" {
+		panic(err.Error())
 	}
 
 	receiverServerPort, err := strconv.Atoi(os.Getenv("RECEIVER_SERVER_PORT"))
@@ -60,6 +61,7 @@ func loadConfigs() *Configs {
 		WHATSAPP_API_TOKEN:  os.Getenv("WHATSAPP_API_TOKEN"),
 		WHATSAPP_SESSION_ID: os.Getenv("WHATSAPP_SESSION_ID"),
 		LOG_FORMAT:          os.Getenv("LOG_FORMAT"),
+		MIGRATIONS_PATH:     os.Getenv("MIGRATIONS_PATH"),
 		imapConfigs: &ImapConfigs{
 			ServerUrl:  os.Getenv("RECEIVER_SERVER"),
 			ServerPort: receiverServerPort,
