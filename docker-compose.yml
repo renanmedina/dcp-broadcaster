@@ -67,6 +67,7 @@ services:
       - dcp-broadcaster-whatsapp-api
     networks:
       - dcp-broadcaster-network
+    restart: "always"
 volumes:
   db-data:
     driver: "local"

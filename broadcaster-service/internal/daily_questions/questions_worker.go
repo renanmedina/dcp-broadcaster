@@ -11,7 +11,7 @@ type QuestionsWorker struct {
 	logger           *utils.ApplicationLogger
 }
 
-func (worker *QuestionsWorker) Work(every time.Duration) {
+func (worker *QuestionsWorker) Work(every time.Duration, runImmediately bool) {
 	worker.logger.Info("Starting questions receiver worker")
 
 	use_case, err := NewFetchNewQuestions()
@@ -20,8 +20,11 @@ func (worker *QuestionsWorker) Work(every time.Duration) {
 		worker.logger.Fatal(err.Error())
 	}
 
-	ticker := time.NewTicker(every)
+	if runImmediately {
+		use_case.Execute() // imediately calls first run
+	}
 
+	ticker := time.NewTicker(every)
 	for {
 		select {
 		case <-ticker.C:
