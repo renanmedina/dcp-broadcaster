@@ -11,7 +11,7 @@ func main() {
 	logger := utils.GetApplicationLogger()
 	setup()
 	migrate(logger)
-	startWorker(30*time.Second, logger)
+	// startWorker(30*time.Second, logger)
 }
 
 func startWorker(every time.Duration, logger *utils.ApplicationLogger) {

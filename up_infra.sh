@@ -1,2 +1,2 @@
 #!/bin/bash
-docker-compose -p="dcp-broadcaster-infra" up -d
+docker-compose -p="dcp-broadcaster-infra" up -d --build

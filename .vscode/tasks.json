@@ -6,9 +6,9 @@
     {
       "label": "▶︎ Run Application (Live Reload)",
       "type": "shell",
-      "command": "$(go env GOPATH)/bin/air",
+      "command": "cd broadcaster-service && $(go env GOPATH)/bin/air",
       "windows": {
-        "command": "$(go env GOPATH)/bin/air"
+        "command": "cd broadcaster-service && $(go env GOPATH)/bin/air"
       },
       "group": "none",
       "presentation": {
