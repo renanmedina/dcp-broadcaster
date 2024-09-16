@@ -49,14 +49,10 @@ func (uc *FetchNewQuestions) processQuestions(questions []Question) {
 }
 
 func NewFetchNewQuestions() (*FetchNewQuestions, error) {
-	svc, err := NewQuestionsService()
-
-	if err != nil {
-		return nil, err
-	}
+	service := NewQuestionsService()
 
 	return &FetchNewQuestions{
-		svc,
+		service,
 		NewQuestionsRepository(),
 		utils.GetApplicationLogger(),
 		newEventPublisher(),

@@ -34,11 +34,6 @@ func (worker *QuestionsWorker) Work(every time.Duration, runImmediately bool) {
 }
 
 func NewQuestionsReceiver() (QuestionsWorker, error) {
-	service, err := NewQuestionsService()
-
-	if err != nil {
-		return QuestionsWorker{}, err
-	}
-
+	service := NewQuestionsService()
 	return QuestionsWorker{service, utils.GetApplicationLogger()}, nil
 }

@@ -1,7 +1,6 @@
 package daily_questions
 
 import (
-	"log"
 	"time"
 
 	"github.com/emersion/go-imap"
@@ -13,9 +12,50 @@ const (
 	SENDER_LOOKUP_EMAIL = "founders@dailycodingproblem.com"
 )
 
+type InternalImapConnector struct {
+	config utils.ImapConfigs
+	client *client.Client
+}
+
+func (c *InternalImapConnector) connect() error {
+	if c.client == nil {
+		imapClient, err := client.DialTLS(c.config.Address(), nil)
+
+		if err != nil {
+			return err
+		}
+
+		if err := c.client.Login(c.config.Username, c.config.Password); err != nil {
+			return err
+		}
+
+		c.client = imapClient
+	}
+
+	return nil
+}
+
+func (c *InternalImapConnector) disconnect() error {
+	if c.client != nil {
+		err := c.client.Close()
+		c.client = nil
+
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
 type QuestionsService struct {
-	client    *client.Client
+	connector InternalImapConnector
 	inboxName string
+	logger    *utils.ApplicationLogger
+}
+
+func (s *QuestionsService) Client() *client.Client {
+	return s.connector.client
 }
 
 func (s *QuestionsService) GetNewQuestions(quantity uint32) ([]Question, error) {
@@ -41,11 +81,19 @@ func (s *QuestionsService) GetQuestionsFromAfter(threshold time.Time) ([]Questio
 }
 
 func (s *QuestionsService) fetchMessages(quantity uint32) (chan *imap.Message, error) {
+	err := s.connector.connect()
+
+	defer s.connector.disconnect()
+
+	if err != nil {
+		return nil, err
+	}
+
 	if quantity == 0 {
 		quantity = 1
 	}
 
-	mailbox, err := s.client.Select(s.inboxName, true)
+	mailbox, err := s.Client().Select(s.inboxName, true)
 
 	if err != nil {
 		return nil, err
@@ -60,27 +108,23 @@ func (s *QuestionsService) fetchMessages(quantity uint32) (chan *imap.Message, e
 	items := []imap.FetchItem{section.FetchItem(), imap.FetchEnvelope}
 
 	go func() {
-		if err := s.client.Fetch(seqSet, items, messages); err != nil {
-			log.Fatal(err)
+		if err := s.Client().Fetch(seqSet, items, messages); err != nil {
+			s.logger.Error("Failed to fetch messages from imap client", "error", err.Error())
 		}
 	}()
 
 	return messages, nil
 }
 
-func NewQuestionsService() (QuestionsService, error) {
+func NewQuestionsService() QuestionsService {
 	config := utils.GetImapConfigs()
-	imapClient, err := client.DialTLS(config.Address(), nil)
-
-	if err != nil {
-		return QuestionsService{}, err
+	return QuestionsService{
+		connector: InternalImapConnector{
+			config: *config,
+		},
+		inboxName: "INBOX",
+		logger:    utils.GetApplicationLogger(),
 	}
-
-	if err := imapClient.Login(config.Username, config.Password); err != nil {
-		return QuestionsService{}, err
-	}
-
-	return QuestionsService{imapClient, "INBOX"}, nil
 }
 
 func buildQuestionsFromMessages(messages chan *imap.Message) []Question {
