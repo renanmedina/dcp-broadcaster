@@ -59,6 +59,7 @@ services:
     build: ./broadcaster-service/
     environment:
       - ENV_NAME=staging
+      - ENVIRONMENT=staging
       - DB_URL=postgres://postgres:dcp-broadcaster-pwd@dcp-broadcaster-db:5432/dcp_broadcaster?sslmode=disable
       - DISCORD_BOT_TOKEN=
       - DISCORD_API_URL=https://discord.com/api/v10
@@ -66,7 +67,15 @@ services:
       - WHATSAPP_API_TOKEN=local_whatsapp_api_key
       - WHATSAPP_SESSION_ID=f8377d8d-a589-4242-9ba6-9486a04ef80c
       - LOG_FORMAT=json
+      - RECEIVER_SERVER=imap.hostinger.com
+      - RECEIVER_SERVER_PORT=993
+      - RECEIVER_USERNAME=dcp-broadcaster@silvamedina.com.br
+      - RECEIVER_PASSWORD=
       - MIGRATIONS_PATH=file://db/migrations
+      - NEW_RELIC_ENABLED=true
+      - NEW_RELIC_LICENSE_KEY=
+      - NEW_RELIC_USER_KEY=
+      - NEW_RELIC_APP_NAME=
     links:
       - dcp-broadcaster-db
       - dcp-broadcaster-whatsapp-api
