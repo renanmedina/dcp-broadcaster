@@ -11,6 +11,8 @@ import (
 	"github.com/renanmedina/dcp-broadcaster/utils"
 )
 
+const BROADCAST_COMMUNITY_GROUP_CHAT_ID = "120363316303547295@g.us"
+
 type WhatsappConfigs struct {
 	apiUrl    string
 	apiToken  string
@@ -24,12 +26,37 @@ type WhatsappService struct {
 }
 
 func (s WhatsappService) Send(message string, user accounts.User) error {
-	phone_number := user.PhoneNumber
+	phone_number := fmt.Sprintf("%s@c.us", user.PhoneNumber)
 	s.logger.Info(fmt.Sprintf("Sending received daily question via whatsapp to phone number %s", phone_number), "user", user.ToLogMap(), "message", message)
 
+	err := s.sendMessageRequest(message, phone_number)
+
+	if err != nil {
+		errMsg := fmt.Sprintf("Failed send daily question via whatsapp to phone number %s", phone_number)
+		s.logger.Error(errMsg, "user", user.ToLogMap(), "message", message)
+		return err
+	}
+
+	return nil
+}
+
+func (s WhatsappService) Broadcast(message string) error {
+	s.logger.Info("Sending received daily question via whatsapp to community group", "message", message)
+	err := s.sendMessageRequest(message, BROADCAST_COMMUNITY_GROUP_CHAT_ID)
+
+	if err != nil {
+		s.logger.Error("Failed send daily question via whatsapp to community group", "message", message)
+		return err
+	}
+
+	return nil
+}
+
+func (s WhatsappService) sendMessageRequest(message string, chatId string) error {
 	url := fmt.Sprintf("%s/client/sendMessage/%s", s.configs.apiUrl, s.configs.sessionId)
+
 	bodyParams, err := json.Marshal(map[string]string{
-		"chatId":      fmt.Sprintf("%s@c.us", phone_number),
+		"chatId":      chatId,
 		"contentType": "string",
 		"content":     message,
 	})
@@ -39,9 +66,9 @@ func (s WhatsappService) Send(message string, user accounts.User) error {
 		return err
 	}
 
-	params := bytes.NewBuffer(bodyParams)
+	requestParams := bytes.NewBuffer(bodyParams)
+	request, err := http.NewRequest("POST", url, requestParams)
 
-	request, err := http.NewRequest("POST", url, params)
 	request.Header.Add("Accept", "*/*")
 	request.Header.Add("x-api-key", s.configs.apiToken)
 	request.Header.Add("Content-Type", "application/json")
@@ -54,7 +81,6 @@ func (s WhatsappService) Send(message string, user accounts.User) error {
 	response, err := s.client.Do(request)
 
 	if err != nil {
-		s.logger.Error(fmt.Sprintf("Failed send daily question via whatsapp to phone number %s", phone_number), "user", user.ToLogMap(), "message", message)
 		return err
 	}
 

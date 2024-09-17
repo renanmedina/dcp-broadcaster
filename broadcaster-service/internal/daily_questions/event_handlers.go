@@ -19,5 +19,8 @@ func configEventHandlers() map[string][]event_store.EventHandler {
 		QUESTION_SENT_EVENT_NAME: {
 			event_store.NewSaveEventToStoreHandler(),
 		},
+		QUESTION_BROADCASTED_EVENT_NAME: {
+			event_store.NewSaveEventToStoreHandler(),
+		},
 	}
 }

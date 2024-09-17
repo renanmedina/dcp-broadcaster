@@ -11,13 +11,8 @@ type SendQuestionToUsersHandler struct {
 
 func (handler SendQuestionToUsersHandler) Handle(evt event_store.PublishableEvent) {
 	questionId := evt.ObjectId()
-	users := handler.usersRepository.GetAllSubscribed()
-
-	use_case := NewSendQuestionToUser()
-
-	for _, user := range users {
-		go use_case.Execute(questionId, user.Id.String())
-	}
+	use_case := newBroadcastQuestionToUsers()
+	go use_case.Execute(questionId)
 }
 
 func NewSendQuestionToUsersHandler() SendQuestionToUsersHandler {
