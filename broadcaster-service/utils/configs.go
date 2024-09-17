@@ -22,6 +22,13 @@ type Configs struct {
 	LOG_FORMAT          string
 	MIGRATIONS_PATH     string
 	imapConfigs         *ImapConfigs
+	newRelicConfigs     *NewRelicConfigs
+}
+
+type NewRelicConfigs struct {
+	ENABLED     bool
+	LICENSE_KEY string
+	APP_NAME    string
 }
 
 var loadedConfigs *Configs
@@ -42,6 +49,10 @@ func GetImapConfigs() *ImapConfigs {
 	return GetConfigs().imapConfigs
 }
 
+func GetNewRelicConfigs() *NewRelicConfigs {
+	return GetConfigs().newRelicConfigs
+}
+
 func loadConfigs() *Configs {
 	err := godotenv.Load()
 	if err != nil && os.Getenv("ENV_NAME") == "" {
@@ -52,6 +63,12 @@ func loadConfigs() *Configs {
 
 	if err != nil {
 		receiverServerPort = DEFAULT_IMAP_PORT // default
+	}
+
+	newRelicEnabled, err := strconv.ParseBool(os.Getenv("NEW_RELIC_ENABLED"))
+
+	if err != nil {
+		newRelicEnabled = false
 	}
 
 	return &Configs{
@@ -67,6 +84,11 @@ func loadConfigs() *Configs {
 			ServerPort: receiverServerPort,
 			Username:   os.Getenv("RECEIVER_USERNAME"),
 			Password:   os.Getenv("RECEIVER_PASSWORD"),
+		},
+		newRelicConfigs: &NewRelicConfigs{
+			ENABLED:     newRelicEnabled,
+			LICENSE_KEY: os.Getenv("NEW_RELIC_LICENSE_KEY"),
+			APP_NAME:    os.Getenv("NEW_RELIC_APP_NAME"),
 		},
 	}
 }

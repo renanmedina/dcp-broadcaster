@@ -2,8 +2,12 @@ package utils
 
 import (
 	"log"
+	"os"
 
-	"golang.org/x/exp/slog"
+	"github.com/newrelic/go-agent/v3/integrations/logcontext-v2/nrslog"
+	"github.com/newrelic/go-agent/v3/newrelic"
+
+	"log/slog"
 )
 
 type ApplicationLogger struct {
@@ -35,9 +39,40 @@ func newApplicationLogger() *ApplicationLogger {
 }
 
 func newJsonApplicationLogger() *ApplicationLogger {
+	newRelicApp := newNewRelicApp()
+
+	if newRelicApp != nil {
+		nrJsonHandler := nrslog.JSONHandler(newRelicApp, os.Stdout, &slog.HandlerOptions{})
+		slog.SetDefault(slog.New(nrJsonHandler))
+		return &ApplicationLogger{
+			slog.New(nrJsonHandler),
+		}
+	}
+
 	return &ApplicationLogger{
 		slog.New(slog.NewJSONHandler(log.Default().Writer(), loggerOpts)),
 	}
+}
+
+func newNewRelicApp() *newrelic.Application {
+	relicConfigs := GetNewRelicConfigs()
+
+	if !relicConfigs.ENABLED {
+		return nil
+	}
+
+	app, err := newrelic.NewApplication(
+		newrelic.ConfigAppName(relicConfigs.APP_NAME),
+		newrelic.ConfigLicense(relicConfigs.LICENSE_KEY),
+		newrelic.ConfigAppLogDecoratingEnabled(true),
+		newrelic.ConfigAppLogForwardingEnabled(false),
+	)
+
+	if err != nil {
+		panic(err)
+	}
+
+	return app
 }
 
 func (appLogger *ApplicationLogger) Info(msg string, args ...any) {
