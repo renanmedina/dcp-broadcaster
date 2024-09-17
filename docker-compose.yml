@@ -5,8 +5,6 @@ services:
     container_name: dcp-broadcaster-db
     hostname: dcp-broadcaster-db
     restart: always
-    ports:
-      - "5432:5432"
     environment:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=dcp-broadcaster-pwd
@@ -15,6 +13,11 @@ services:
       - ./broadcaster-service/db/create-db.sql:/docker-entrypoint-initdb.d/create_database.sql
     networks:
       - dcp-broadcaster-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
   dcp-broadcaster-metabase:
     image: metabase/metabase:latest
     container_name: dcp-broadcaster-metabase
@@ -46,6 +49,11 @@ services:
       - ./whatsapp-api/sessions:/usr/src/app/sessions # Mount the local ./sessions/ folder to the container's /usr/src/app/sessions folder
     networks:
       - dcp-broadcaster-network
+    healthcheck:
+      test: ["CMD-SHELL", 'netstat -ltn | grep -c ":3000"']
+      interval: 5s
+      timeout: 5s
+      retries: 5
   dcp-broadcaster:
     container_name: dcp-broadcaster-worker
     build: ./broadcaster-service/
@@ -63,8 +71,10 @@ services:
       - dcp-broadcaster-db
       - dcp-broadcaster-whatsapp-api
     depends_on:
-      - dcp-broadcaster-db
-      - dcp-broadcaster-whatsapp-api
+      dcp-broadcaster-db:
+        condition: service_healthy
+      dcp-broadcaster-whatsapp-api:
+        condition: service_healthy
     networks:
       - dcp-broadcaster-network
     restart: "always"
