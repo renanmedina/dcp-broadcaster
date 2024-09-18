@@ -14,6 +14,7 @@ const (
 )
 
 type Configs struct {
+	ENVIRONMENT         string
 	DB_URL              string
 	DISCORD_BOT_TOKEN   string
 	WHATSAPP_API_URL    string
@@ -55,7 +56,7 @@ func GetNewRelicConfigs() *NewRelicConfigs {
 
 func loadConfigs() *Configs {
 	err := godotenv.Load()
-	if err != nil && os.Getenv("ENV_NAME") == "" {
+	if err != nil && os.Getenv("ENVIRONMENT") == "" {
 		panic(err.Error())
 	}
 
@@ -72,6 +73,7 @@ func loadConfigs() *Configs {
 	}
 
 	return &Configs{
+		ENVIRONMENT:         os.Getenv("ENVIRONMENT"),
 		DB_URL:              os.Getenv("DB_URL"),
 		DISCORD_BOT_TOKEN:   os.Getenv("DISCORD_BOT_TOKEN"),
 		WHATSAPP_API_URL:    os.Getenv("WHATSAPP_API_URL"),
