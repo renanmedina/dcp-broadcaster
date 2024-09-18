@@ -50,10 +50,6 @@ func GetImapConfigs() *ImapConfigs {
 	return GetConfigs().imapConfigs
 }
 
-func GetNewRelicConfigs() *NewRelicConfigs {
-	return GetConfigs().newRelicConfigs
-}
-
 func loadConfigs() *Configs {
 	err := godotenv.Load()
 	if err != nil && os.Getenv("ENVIRONMENT") == "" {

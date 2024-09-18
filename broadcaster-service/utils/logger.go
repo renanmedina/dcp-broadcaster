@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/newrelic/go-agent/v3/integrations/logcontext-v2/nrslog"
-	"github.com/newrelic/go-agent/v3/newrelic"
 
 	"log/slog"
 )
@@ -56,28 +55,6 @@ func newJsonApplicationLogger(envName string) *ApplicationLogger {
 		envName,
 		slog.New(jsonHandler),
 	}
-}
-
-func newNewRelicApp() *newrelic.Application {
-	relicConfigs := GetNewRelicConfigs()
-
-	if !relicConfigs.ENABLED {
-		return nil
-	}
-
-	app, err := newrelic.NewApplication(
-		newrelic.ConfigAppName(relicConfigs.APP_NAME),
-		newrelic.ConfigLicense(relicConfigs.LICENSE_KEY),
-		newrelic.ConfigAppLogEnabled(true),
-		newrelic.ConfigAppLogForwardingEnabled(true),
-		newrelic.ConfigAppLogDecoratingEnabled(true),
-	)
-
-	if err != nil {
-		panic(err)
-	}
-
-	return app
 }
 
 func (appLogger *ApplicationLogger) addEnv(args []any) []any {
