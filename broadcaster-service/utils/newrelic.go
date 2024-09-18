@@ -19,8 +19,7 @@ func newNewRelicApp() *newrelic.Application {
 		newrelic.ConfigAppLogEnabled(true),
 		newrelic.ConfigAppLogForwardingEnabled(true),
 		newrelic.ConfigAppLogDecoratingEnabled(true),
-		newrelic.ConfigDistributedTracerEnabled(true),
-		newrelic.ConfigFromEnvironment(),
+		newrelic.ConfigDistributedTracerEnabled(true)
 	)
 
 	if err != nil {
