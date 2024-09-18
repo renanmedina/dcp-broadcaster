@@ -8,7 +8,7 @@ import (
 	"github.com/golang-migrate/migrate/v4"
 	"github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
-	_ "github.com/tursodatabase/libsql-client-go/libsql"
+	_ "github.com/newrelic/go-agent/v3/integrations/nrpq"
 )
 
 type DatabaseAdapdater struct {
@@ -27,7 +27,7 @@ func init() {
 
 func initDB() {
 	configs := GetConfigs()
-	openedDb, err := sql.Open("postgres", configs.DbConnectionInfo())
+	openedDb, err := sql.Open("nrpostgres", configs.DbConnectionInfo())
 
 	openedDb.SetMaxOpenConns(20) // Sane default
 	openedDb.SetMaxIdleConns(0)

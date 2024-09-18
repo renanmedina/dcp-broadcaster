@@ -11,13 +11,10 @@ require (
 	github.com/lib/pq v1.10.9
 	github.com/newrelic/go-agent/v3 v3.34.0
 	github.com/newrelic/go-agent/v3/integrations/logcontext-v2/nrslog v1.3.0
-	github.com/tursodatabase/libsql-client-go v0.0.0-20240902231107-85af5b9d094d
-	golang.org/x/exp v0.0.0-20240325151524-a685a6edb6d8
+	github.com/newrelic/go-agent/v3/integrations/nrpq v1.1.1
 )
 
 require (
-	github.com/antlr4-go/antlr/v4 v4.13.0 // indirect
-	github.com/coder/websocket v1.8.12 // indirect
 	github.com/emersion/go-sasl v0.0.0-20200509203442-7bfe0ed36a21 // indirect
 	github.com/golang/protobuf v1.5.4 // indirect
 	github.com/hashicorp/errwrap v1.1.0 // indirect
