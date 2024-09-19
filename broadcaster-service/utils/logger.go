@@ -3,7 +3,6 @@ package utils
 import (
 	"log"
 	"os"
-	"time"
 
 	"github.com/newrelic/go-agent/v3/integrations/logcontext-v2/nrslog"
 
@@ -41,13 +40,11 @@ func newApplicationLogger(envName string) *ApplicationLogger {
 }
 
 func newJsonApplicationLogger(envName string) *ApplicationLogger {
-	newRelicApp := newNewRelicApp()
-
 	var jsonHandler slog.Handler
 	jsonHandler = slog.NewJSONHandler(log.Default().Writer(), loggerOpts)
 
-	if newRelicApp != nil {
-		newRelicApp.WaitForConnection(time.Second * 5)
+	if IsNewRelicEnabled() {
+		newRelicApp := GetNewRelicApp()
 		jsonHandler = nrslog.JSONHandler(newRelicApp, os.Stdout, &slog.HandlerOptions{})
 	}
 

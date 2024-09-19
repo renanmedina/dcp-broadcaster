@@ -27,6 +27,8 @@ func init() {
 
 func initDB() {
 	configs := GetConfigs()
+	app := newNewRelicApp()
+	app.WaitForConnection(5 * time.Second)
 	openedDb, err := sql.Open("nrpostgres", configs.DbConnectionInfo())
 
 	openedDb.SetMaxOpenConns(20) // Sane default

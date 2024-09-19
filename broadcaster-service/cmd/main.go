@@ -8,6 +8,11 @@ import (
 )
 
 func main() {
+	if utils.IsNewRelicEnabled() {
+		app := utils.InitNewRelicApp()
+		defer app.Shutdown(10 * time.Second)
+	}
+
 	logger := utils.GetApplicationLogger()
 	setup()
 	migrate(logger)
