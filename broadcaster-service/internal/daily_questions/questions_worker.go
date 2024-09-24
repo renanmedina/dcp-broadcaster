@@ -37,3 +37,13 @@ func NewQuestionsReceiver() (QuestionsWorker, error) {
 	service := NewQuestionsService()
 	return QuestionsWorker{service, utils.GetApplicationLogger()}, nil
 }
+
+func StartWorker(every time.Duration) {
+	receiver, err := NewQuestionsReceiver()
+
+	if err != nil {
+		receiver.logger.Fatal(err.Error())
+	}
+
+	receiver.Work(every, true)
+}

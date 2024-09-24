@@ -9,39 +9,15 @@ import (
 
 func main() {
 	if utils.IsNewRelicEnabled() {
-		app := utils.InitNewRelicApp()
-		defer app.Shutdown(10 * time.Second)
+		utils.InitNewRelicApp()
+		// defer app.Shutdown(10 * time.Second)
 	}
 
-	logger := utils.GetApplicationLogger()
 	setup()
-	migrate(logger)
-	startWorker(1*time.Hour, logger)
-}
-
-func startWorker(every time.Duration, logger *utils.ApplicationLogger) {
-	receiver, err := daily_questions.NewQuestionsReceiver()
-
-	if err != nil {
-		logger.Fatal(err.Error())
-	}
-
-	receiver.Work(every, true)
+	utils.MigrateDb("up")
+	daily_questions.StartWorker(1 * time.Hour)
 }
 
 func setup() {
 	time.Local, _ = time.LoadLocation("America/Sao_Paulo")
-}
-
-func migrate(logger *utils.ApplicationLogger) {
-	db := utils.GetDatabase()
-	logger.Info("Migrating database")
-	err := db.Migrate("up", utils.GetConfigs().MIGRATIONS_PATH)
-
-	if err != nil {
-		logger.Error(err.Error())
-		return
-	}
-
-	logger.Info("Migration success")
 }
