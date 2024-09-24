@@ -14,6 +14,7 @@ var newRelicApp *newrelic.Application
 
 func InitNewRelicApp() *newrelic.Application {
 	if newRelicApp != nil {
+		GetApplicationLogger().Info("Initializing New Relic App")
 		newRelicApp := newNewRelicApp()
 		newRelicApp.WaitForConnection(5 * time.Second)
 	}
@@ -41,6 +42,7 @@ func newNewRelicApp() *newrelic.Application {
 		return nil
 	}
 
+	GetApplicationLogger().Info("Creating New Relic App instance")
 	app, err := newrelic.NewApplication(
 		newrelic.ConfigAppName(relicConfigs.APP_NAME),
 		newrelic.ConfigLicense(relicConfigs.LICENSE_KEY),
