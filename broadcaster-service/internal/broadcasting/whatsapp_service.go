@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"time"
 
 	"github.com/renanmedina/dcp-broadcaster/internal/accounts"
 	"github.com/renanmedina/dcp-broadcaster/utils"
@@ -53,8 +54,15 @@ func (s WhatsappService) Broadcast(message string) error {
 }
 
 func (s WhatsappService) sendMessageRequest(message string, chatId string) error {
-	url := fmt.Sprintf("%s/client/sendMessage/%s", s.configs.apiUrl, s.configs.sessionId)
+	err := s.restartSession()
+	if err != nil {
+		s.logger.Error("Failed to restart session", "error", err.Error())
+		return err
+	}
 
+	time.Sleep(time.Second * 45)
+
+	url := fmt.Sprintf("%s/client/sendMessage/%s", s.configs.apiUrl, s.configs.sessionId)
 	bodyParams, err := json.Marshal(map[string]string{
 		"chatId":      chatId,
 		"contentType": "string",
@@ -88,6 +96,27 @@ func (s WhatsappService) sendMessageRequest(message string, chatId string) error
 
 	if err != nil {
 		s.logger.Error("Failed to read response from whatsapp service")
+		return err
+	}
+
+	return nil
+}
+
+func (s WhatsappService) restartSession() error {
+	url := fmt.Sprintf("%s/session/restart/%s", s.configs.apiUrl, s.configs.sessionId)
+	request, err := http.NewRequest("GET", url, nil)
+
+	if err != nil {
+		return err
+	}
+
+	request.Header.Add("Accept", "*/*")
+	request.Header.Add("x-api-key", s.configs.apiToken)
+	request.Header.Add("Content-Type", "application/json")
+
+	_, err = s.client.Do(request)
+
+	if err != nil {
 		return err
 	}
 

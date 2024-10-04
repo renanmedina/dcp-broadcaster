@@ -8,7 +8,7 @@ RUN go mod download
 
 COPY . .
 
-RUN CGO_ENABLED=0 GOOS=linux go build -o ./dist/dcp-broadcaster cmd/main.go
+RUN CGO_ENABLED=0 GOOS=linux go build -o ./dist/dcp-broadcaster main.go
 
 FROM alpine:latest
 
