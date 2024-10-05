@@ -17,6 +17,18 @@ type QuestionsRepository struct {
 	db *utils.DatabaseAdapdater
 }
 
+func (r *QuestionsRepository) GetLatest() *Question {
+	scanner := r.db.SelectOne(FIELDS, QUESTIONS_TABLE_NAME, map[string]interface{}{}, "received_at desc")
+
+	question, err := buildQuestionFromDb(*scanner)
+
+	if err != nil {
+		return nil
+	}
+
+	return &question
+}
+
 func (r *QuestionsRepository) GetByOriginalId(id string) (*Question, error) {
 	scanner := r.db.SelectOne(FIELDS, QUESTIONS_TABLE_NAME, map[string]interface{}{
 		"original_id": id,

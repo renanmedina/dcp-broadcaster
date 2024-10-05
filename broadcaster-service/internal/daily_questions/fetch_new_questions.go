@@ -2,6 +2,8 @@ package daily_questions
 
 import (
 	"fmt"
+	"math"
+	"time"
 
 	"github.com/lib/pq"
 	"github.com/renanmedina/dcp-broadcaster/internal/event_store"
@@ -16,7 +18,15 @@ type FetchNewQuestions struct {
 }
 
 func (uc *FetchNewQuestions) Execute() {
-	questions, err := uc.service.GetNewQuestions(3)
+	latestQuestion := uc.questionsRepository.GetLatest()
+	var fetchQuantity uint32 = 3
+
+	if latestQuestion != nil {
+		diff := time.Since(latestQuestion.ReceivedAt)
+		fetchQuantity = uint32(math.Ceil(diff.Hours() / 24))
+	}
+
+	questions, err := uc.service.GetNewQuestions(fetchQuantity)
 
 	if err != nil {
 		uc.logger.Error(err.Error())

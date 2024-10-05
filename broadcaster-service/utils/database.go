@@ -86,7 +86,7 @@ func (adapter *DatabaseAdapdater) Select(fields string, tableName string, wheres
 	return rows, nil
 }
 
-func (adapter *DatabaseAdapdater) SelectOne(fields string, tableName string, wheres interface{}) *squirrel.RowScanner {
+func (adapter *DatabaseAdapdater) SelectOne(fields string, tableName string, wheres interface{}, orderBys ...string) *squirrel.RowScanner {
 	if fields == "" {
 		fields = "*"
 	}
@@ -94,6 +94,7 @@ func (adapter *DatabaseAdapdater) SelectOne(fields string, tableName string, whe
 	scanner := squirrel.Select(fields).
 		From(tableName).
 		Where(wheres).
+		OrderBy(orderBys...).
 		RunWith(adapter.db).
 		PlaceholderFormat(squirrel.Dollar).
 		QueryRow()
