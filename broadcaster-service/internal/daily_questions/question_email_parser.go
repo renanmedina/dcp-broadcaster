@@ -1,26 +1,23 @@
 package daily_questions
 
 import (
-	"io"
-	"log"
 	"regexp"
 	"strings"
 	"time"
 
-	"github.com/emersion/go-imap"
+	imap "github.com/BrianLeishman/go-imap"
 )
 
 type QuestionEmailParser struct{}
 
 type QuestionEmailMetadata struct {
-	MessageId    string
-	Date         time.Time
-	Title        string
-	OriginalBody string
-	BodyHtml     string
-	BodyText     string
-	Difficulty   string
-	CompanyName  string
+	MessageId   string
+	Date        time.Time
+	Title       string
+	BodyHtml    string
+	BodyText    string
+	Difficulty  string
+	CompanyName string
 }
 
 func (m *QuestionEmailMetadata) Valid() bool {
@@ -31,20 +28,20 @@ func (m *QuestionEmailMetadata) Valid() bool {
 	return false
 }
 
-func parseQuestionEmailMessage(msg *imap.Message) QuestionEmailMetadata {
-	bodyData := readMessageBody(msg.Body)
-	questionHtml := parseMessageToHtml(bodyData)
-	questionText := parseMessageToText(bodyData)
+func parseQuestionEmailMessage(msg *imap.Email) QuestionEmailMetadata {
+	questionHtml := msg.HTML
+	questionText := extractQuestionText(msg.Text)
+	companyName := extractCompanyName(questionText)
+	difficulty := extractDifficulty(msg.Subject)
 
 	return QuestionEmailMetadata{
-		MessageId:    extractMessageId(msg.Envelope.MessageId),
-		Date:         msg.Envelope.Date,
-		Title:        msg.Envelope.Subject,
-		Difficulty:   extractDifficulty(msg.Envelope.Subject),
-		OriginalBody: bodyData,
-		BodyHtml:     questionHtml,
-		BodyText:     questionText,
-		CompanyName:  extractCompanyName(questionText),
+		MessageId:   extractMessageId(msg.MessageID),
+		Date:        msg.Received,
+		Title:       msg.Subject,
+		Difficulty:  difficulty,
+		BodyHtml:    questionHtml,
+		BodyText:    questionText,
+		CompanyName: companyName,
 	}
 }
 
@@ -62,7 +59,7 @@ func extractDifficulty(title string) string {
 	)
 }
 
-func parseMessageToText(bodyContent string) string {
+func extractQuestionText(bodyContent string) string {
 	extracted := extractByRegex(bodyContent, `Good morning!(?s:.+)--------?`)
 	splits := strings.Split(extracted, "--------")
 
@@ -73,31 +70,9 @@ func parseMessageToText(bodyContent string) string {
 	return ""
 }
 
-func parseMessageToHtml(bodyContent string) string {
-	return extractByRegex(bodyContent, `\<!DOCTYPE html (?s:.+)`)
-}
-
-func readMessageBody(messageBody map[*imap.BodySectionName]imap.Literal) string {
-	for _, v := range messageBody {
-		body, err := io.ReadAll(v)
-		if err != nil {
-			log.Fatal(err.Error())
-		}
-
-		return string(body)
-	}
-
-	return ""
-}
-
 func extractByRegex(text string, expression string) string {
 	rxp := regexp.MustCompile(expression)
 	matches := rxp.FindStringSubmatch(text)
-
-	// fmt.Println("Evaluating expression:")
-	// fmt.Println(expression)
-	// fmt.Println("Results:")
-	// fmt.Println(matches)
 
 	if matches != nil {
 		return matches[len(matches)-1]
