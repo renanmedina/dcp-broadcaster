@@ -2,11 +2,13 @@ package daily_questions
 
 import (
 	"errors"
+	"fmt"
 	"log"
+	"maps"
+	"slices"
 	"time"
 
-	"github.com/emersion/go-imap"
-	"github.com/emersion/go-imap/client"
+	imap "github.com/BrianLeishman/go-imap"
 	"github.com/renanmedina/dcp-broadcaster/utils"
 )
 
@@ -14,45 +16,38 @@ const (
 	SENDER_LOOKUP_EMAIL = "founders@dailycodingproblem.com"
 )
 
-type InternalImapConnector struct {
+type InternalImapClient struct {
 	config    utils.ImapConfigs
 	inboxName string
-
-	client  *client.Client
-	mailbox *imap.MailboxStatus
+	dialer    *imap.Dialer
 }
 
-func (c *InternalImapConnector) connect() error {
-	if c.client == nil {
-		imapClient, err := client.DialTLS(c.config.Address(), nil)
+func (c *InternalImapClient) connect() error {
+	if c.dialer == nil {
+		imap.Verbose = false
+		imapClient, err := imap.New(c.config.Username, c.config.Password, c.config.ServerUrl, c.config.ServerPort)
 
 		if err != nil {
 			log.Fatal(err)
 			return err
 		}
 
-		if err := imapClient.Login(c.config.Username, c.config.Password); err != nil {
-			log.Fatal(err)
-			return err
-		}
-
-		mailbox, err := imapClient.Select(c.inboxName, true)
+		imapClient.SelectFolder(c.inboxName)
 
 		if err != nil {
 			return err
 		}
 
-		c.client = imapClient
-		c.mailbox = mailbox
+		c.dialer = imapClient
 	}
 
 	return nil
 }
 
-func (c *InternalImapConnector) disconnect() error {
-	if c.client != nil {
-		err := c.client.Close()
-		c.client = nil
+func (c *InternalImapClient) disconnect() error {
+	if c.dialer != nil {
+		err := c.dialer.Close()
+		c.dialer = nil
 
 		if err != nil {
 			return err
@@ -62,21 +57,44 @@ func (c *InternalImapConnector) disconnect() error {
 	return nil
 }
 
-func (c *InternalImapConnector) selectedMailBox() (*imap.MailboxStatus, error) {
-	if c.mailbox != nil {
-		return c.mailbox, nil
+func (c *InternalImapClient) GetEmails(quantity uint32) (map[int]*imap.Email, error) {
+	err := c.connect()
+	defer c.disconnect()
+
+	emails := make(map[int]*imap.Email, 0)
+
+	if err != nil {
+		return emails, errors.Join(errors.New("failed to connect to imap server"), err)
 	}
 
-	return nil, errors.New("mailbox not selected")
+	totalMessages, err := c.dialer.GetTotalEmailCount()
+	if err != nil {
+		return emails, errors.Join(errors.New("failed to fetch total messages in selected imap folder"), err)
+	}
+
+	fetchOffset := totalMessages - int(quantity)
+	uids, err := c.dialer.GetUIDs(fmt.Sprintf("%d:%d", fetchOffset, totalMessages))
+
+	if err != nil {
+		return emails, errors.Join(errors.New("no uuids found for search"), err)
+	}
+
+	emails, err = c.dialer.GetEmails(uids...)
+
+	if err != nil {
+		return emails, errors.Join(errors.New("no uuids found for search"), err)
+	}
+
+	return emails, nil
 }
 
 type QuestionsService struct {
-	connector InternalImapConnector
-	logger    *utils.ApplicationLogger
+	client InternalImapClient
+	logger *utils.ApplicationLogger
 }
 
-func (s *QuestionsService) Client() *client.Client {
-	return s.connector.client
+func (s *QuestionsService) Client() InternalImapClient {
+	return s.client
 }
 
 func (s *QuestionsService) GetNewQuestions(quantity uint32) ([]Question, error) {
@@ -101,48 +119,25 @@ func (s *QuestionsService) GetQuestionsFromAfter(threshold time.Time) ([]Questio
 	return newMessages, nil
 }
 
-func (s *QuestionsService) fetchMessages(quantity uint32) (chan *imap.Message, error) {
-	err := s.connector.connect()
-
-	if err != nil {
-		s.logger.Error("Failed to connect to imap server", "error", err.Error())
-		return nil, err
-	}
-
+func (s *QuestionsService) fetchMessages(quantity uint32) (map[int]*imap.Email, error) {
 	if quantity == 0 {
 		quantity = 1
 	}
 
-	mailbox, err := s.connector.selectedMailBox()
+	emails, err := s.client.GetEmails(quantity)
+
 	if err != nil {
-		s.logger.Error("Failed to get selected mailbox from imap server", "error", err.Error())
-		return nil, err
+		s.logger.Error(err.Error(), "error", err.Error())
+		return make(map[int]*imap.Email), err
 	}
 
-	seqSet := new(imap.SeqSet)
-	realQuantity := (quantity - 1)
-	seqSet.AddRange(mailbox.Messages, mailbox.Messages-realQuantity)
-
-	messages := make(chan *imap.Message, quantity)
-	section := &imap.BodySectionName{}
-	items := []imap.FetchItem{section.FetchItem(), imap.FetchEnvelope}
-
-	go func() {
-		defer s.connector.disconnect()
-
-		err := s.Client().Fetch(seqSet, items, messages)
-		if err != nil {
-			s.logger.Error("Failed to fetch messages from imap client", "error", err.Error())
-		}
-	}()
-
-	return messages, nil
+	return emails, nil
 }
 
 func NewQuestionsService() QuestionsService {
 	config := utils.GetImapConfigs()
 	return QuestionsService{
-		connector: InternalImapConnector{
+		client: InternalImapClient{
 			config:    *config,
 			inboxName: "INBOX",
 		},
@@ -150,11 +145,13 @@ func NewQuestionsService() QuestionsService {
 	}
 }
 
-func buildQuestionsFromMessages(messages chan *imap.Message) []Question {
+func buildQuestionsFromMessages(messages map[int]*imap.Email) []Question {
 	var newMessages []Question
 
-	for msg := range messages {
-		if msg.Envelope.From[0].Address() == SENDER_LOOKUP_EMAIL {
+	for _, msg := range messages {
+		address := slices.Collect(maps.Keys(msg.From))
+
+		if address[0] == SENDER_LOOKUP_EMAIL {
 			metadata := parseQuestionEmailMessage(msg)
 
 			if metadata.Valid() {

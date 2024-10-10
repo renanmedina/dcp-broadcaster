@@ -12,3 +12,9 @@ Application to monitor coding daily problems received by email and broadcast to 
 - Postgres 16
 - Metabase (For reports)
 - Migrate CLI Tool latest (github.com/golang-migrate/migrate)
+
+
+### PRODUCTION ENVIRONMENT
+- whatsapp-api-sevice (Fly.io)
+- Postgres (Supabase)
+- DCP-Worker (Local Docker Container)
