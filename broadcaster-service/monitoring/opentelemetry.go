@@ -22,11 +22,11 @@ type TraceUnit struct {
 	childSpans []trace.Span
 }
 
-func (tc TraceUnit) AddEvent(eventName string, options ...trace.EventOption) {
+func (tc *TraceUnit) AddEvent(eventName string, options ...trace.EventOption) {
 	tc.Span.AddEvent(eventName, options...)
 }
 
-func (tc TraceUnit) End() {
+func (tc *TraceUnit) End() {
 	if len(tc.childSpans) > 0 {
 		for _, childSpan := range tc.childSpans {
 			childSpan.End()

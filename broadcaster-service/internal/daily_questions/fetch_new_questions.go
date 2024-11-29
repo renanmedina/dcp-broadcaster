@@ -38,10 +38,10 @@ func (uc *FetchNewQuestions) Execute() {
 		monitoring.ReportErrorFor(trace, err)
 	}
 
-	uc.processQuestions(questions, trace)
+	uc.processQuestions(questions, &trace)
 }
 
-func (uc *FetchNewQuestions) processQuestions(questions []Question, trace monitoring.TraceUnit) {
+func (uc *FetchNewQuestions) processQuestions(questions []Question, trace *monitoring.TraceUnit) {
 	for _, question := range questions {
 		trace.NewChildSpan(fmt.Sprintf("FetchNewQuestions.processQuestions[%s]", question.Id.String()))
 
@@ -57,7 +57,7 @@ func (uc *FetchNewQuestions) processQuestions(questions []Question, trace monito
 
 			errMsg := fmt.Sprintf("Failed processing message received from questions service: %s", err.Error())
 			uc.logger.Error(errMsg, "question", question.ToLogMap())
-			monitoring.ReportErrorFor(trace, err)
+			monitoring.ReportErrorFor(*trace, err)
 			continue
 		}
 
