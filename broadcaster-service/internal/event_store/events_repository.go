@@ -24,7 +24,7 @@ func (r *EventsRepository) Save(event PublishableEvent) error {
 
 	if err != nil {
 		fmt.Println("Failed marshal event data")
-		panic(err)
+		return err
 	}
 
 	_, err = r.db.Insert(TABLE_NAME, map[string]interface{}{
@@ -35,7 +35,7 @@ func (r *EventsRepository) Save(event PublishableEvent) error {
 	})
 
 	if err != nil {
-		panic(err)
+		return err
 	}
 
 	return nil

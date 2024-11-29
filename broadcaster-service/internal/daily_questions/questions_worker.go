@@ -7,8 +7,7 @@ import (
 )
 
 type QuestionsWorker struct {
-	questionsService QuestionsService
-	logger           *utils.ApplicationLogger
+	logger *utils.ApplicationLogger
 }
 
 func (worker *QuestionsWorker) Work(every time.Duration, runImmediately bool) {
@@ -34,8 +33,7 @@ func (worker *QuestionsWorker) Work(every time.Duration, runImmediately bool) {
 }
 
 func NewQuestionsReceiver() (QuestionsWorker, error) {
-	service := NewQuestionsService()
-	return QuestionsWorker{service, utils.GetApplicationLogger()}, nil
+	return QuestionsWorker{utils.GetApplicationLogger()}, nil
 }
 
 func StartWorker(every time.Duration) {
