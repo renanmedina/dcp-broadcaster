@@ -40,7 +40,7 @@ func (uc *FetchNewQuestions) Execute() {
 		fetchQuantity = uint32(math.Ceil(diff.Hours() / 24))
 	}
 
-	uc.logger.Info(fmt.Sprintf("Fetching %d new questions", fetchQuantity))
+	uc.logger.Info(fmt.Sprintf("Fetching new questions (Qtd: %d)", fetchQuantity))
 	questions, err := uc.service.GetNewQuestions(fetchQuantity)
 
 	if err != nil {
@@ -52,6 +52,8 @@ func (uc *FetchNewQuestions) Execute() {
 }
 
 func (uc *FetchNewQuestions) processQuestions(questions []Question, trace *monitoring.TraceUnit) {
+	newlyProcessed := 0
+
 	for _, question := range questions {
 		trace.NewChildSpan(fmt.Sprintf("FetchNewQuestions.processQuestions[%s]", question.Id.String()))
 
@@ -74,7 +76,15 @@ func (uc *FetchNewQuestions) processQuestions(questions []Question, trace *monit
 		uc.logger.Info("Processed message received from questions service", "question", question.ToLogMap())
 		trace.NewChildSpan(fmt.Sprintf("event_store.EventPublisher.publish[QuestionCreated][%s]", question.Id.String()))
 		uc.publisher.Publish(newQuestionCreated(question))
+		newlyProcessed += 1
 	}
+
+	if newlyProcessed > 0 {
+		uc.logger.Info(fmt.Sprintf("%d new question(s) received", newlyProcessed))
+		return
+	}
+
+	uc.logger.Info("No new questions received")
 }
 
 func NewFetchNewQuestions() (*FetchNewQuestions, error) {
