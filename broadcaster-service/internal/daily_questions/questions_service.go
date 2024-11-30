@@ -33,11 +33,6 @@ func (c *InternalImapClient) connect() error {
 		}
 
 		imapClient.SelectFolder(c.inboxName)
-
-		if err != nil {
-			return err
-		}
-
 		c.dialer = imapClient
 	}
 
