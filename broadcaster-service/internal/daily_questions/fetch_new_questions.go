@@ -27,10 +27,20 @@ func (uc *FetchNewQuestions) Execute() {
 	var fetchQuantity uint32 = 3
 
 	if latestQuestion != nil {
+		logStr := fmt.Sprintf(
+			"Latest received question was [%s] - %s (%s) at %s",
+			latestQuestion.DifficultyLevel,
+			latestQuestion.Title,
+			latestQuestion.CompanyName,
+			latestQuestion.ReceivedAt,
+		)
+
+		uc.logger.Info(logStr, "question", latestQuestion.ToLogMap())
 		diff := time.Since(latestQuestion.ReceivedAt)
 		fetchQuantity = uint32(math.Ceil(diff.Hours() / 24))
 	}
 
+	uc.logger.Info(fmt.Sprintf("Fetching %d new questions", fetchQuantity))
 	questions, err := uc.service.GetNewQuestions(fetchQuantity)
 
 	if err != nil {

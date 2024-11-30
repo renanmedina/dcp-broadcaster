@@ -1,14 +1,18 @@
 package utils
 
 import (
+	"context"
 	"log"
 
 	"log/slog"
+
+	"go.opentelemetry.io/otel/trace"
 )
 
 type ApplicationLogger struct {
-	envName string
-	logger  *slog.Logger
+	envName        string
+	logger         *slog.Logger
+	currentContext context.Context
 }
 
 var logger *ApplicationLogger
@@ -33,6 +37,7 @@ func newApplicationLogger(envName string) *ApplicationLogger {
 	return &ApplicationLogger{
 		envName,
 		slog.Default(),
+		nil,
 	}
 }
 
@@ -42,29 +47,49 @@ func newJsonApplicationLogger(envName string) *ApplicationLogger {
 	return &ApplicationLogger{
 		envName,
 		slog.New(jsonHandler),
+		nil,
 	}
 }
 
-func (appLogger *ApplicationLogger) addEnv(args []any) []any {
-	args = append(args, "environment")
-	args = append(args, appLogger.envName)
+func (appLogger *ApplicationLogger) addAppAttributes(args []any) []any {
+	configs := GetConfigs()
+	args = append(args, "environment", appLogger.envName)
+	args = append(args, "service_name", configs.SERVICE_NAME)
+
+	if appLogger.currentContext != nil {
+		spanCtx := trace.SpanContextFromContext(appLogger.currentContext)
+
+		if spanCtx.HasTraceID() {
+			args = append(args, "trace_id", spanCtx.TraceID())
+		}
+
+		if spanCtx.HasSpanID() {
+			args = append(args, "span_id", spanCtx.SpanID())
+		}
+	}
+
 	return args
 }
 
+func (appLogger *ApplicationLogger) WithContext(ctx context.Context) *ApplicationLogger {
+	appLogger.currentContext = ctx
+	return appLogger
+}
+
 func (appLogger *ApplicationLogger) Info(msg string, args ...any) {
-	appLogger.logger.Info(msg, appLogger.addEnv(args)...)
+	appLogger.logger.Info(msg, appLogger.addAppAttributes(args)...)
 }
 
 func (appLogger *ApplicationLogger) Error(msg string, args ...any) {
-	appLogger.logger.Error(msg, appLogger.addEnv(args)...)
+	appLogger.logger.Error(msg, appLogger.addAppAttributes(args)...)
 }
 
 func (appLogger *ApplicationLogger) Debug(msg string, args ...any) {
-	appLogger.logger.Debug(msg, appLogger.addEnv(args)...)
+	appLogger.logger.Debug(msg, appLogger.addAppAttributes(args)...)
 }
 
 func (appLogger *ApplicationLogger) Fatal(msg string, args ...any) {
-	appLogger.logger.Error(msg, appLogger.addEnv(args)...)
+	appLogger.logger.Error(msg, appLogger.addAppAttributes(args)...)
 	panic(msg)
 }
 

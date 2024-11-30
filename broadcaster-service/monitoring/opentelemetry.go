@@ -102,11 +102,17 @@ func NewTracerProvider(traceExporter sdktrace.SpanExporter, resources *resource.
 
 func NewTrace(traceName string, context context.Context) TraceUnit {
 	newSpanContext, span := tracer.Start(context, traceName)
+	logger.WithContext(newSpanContext)
+
 	return TraceUnit{
 		span,
 		newSpanContext,
 		make([]trace.Span, 0),
 	}
+}
+
+func NewSpanContextFromContext(ctx context.Context) trace.SpanContext {
+	return trace.SpanContextFromContext(ctx)
 }
 
 func NewAttributes(attrs map[string]string) trace.SpanStartEventOption {
