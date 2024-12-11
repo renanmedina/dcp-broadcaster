@@ -24,6 +24,7 @@ type Configs struct {
 	MIGRATIONS_PATH              string
 	SERVICE_NAME                 string
 	OPEN_TELEMETRY_COLLECTOR_URL string
+	OLLAMA_SERVICE_API_URL       string
 	imapConfigs                  *ImapConfigs
 }
 
@@ -68,6 +69,7 @@ func loadConfigs() *Configs {
 		MIGRATIONS_PATH:              os.Getenv("MIGRATIONS_PATH"),
 		SERVICE_NAME:                 os.Getenv("SERVICE_NAME"),
 		OPEN_TELEMETRY_COLLECTOR_URL: os.Getenv("OTEL_EXPORTER_OTLP_ENDPOINT"),
+		OLLAMA_SERVICE_API_URL:       os.Getenv("OLLAMA_SERVICE_API_URL"),
 		imapConfigs: &ImapConfigs{
 			ServerUrl:  os.Getenv("RECEIVER_SERVER"),
 			ServerPort: receiverServerPort,
