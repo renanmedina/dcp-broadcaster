@@ -1,1 +1,1 @@
-ALTER TABLE daily_questions REMOVE broadcasted;
+ALTER TABLE daily_questions DROP COLUMN broadcasted;
