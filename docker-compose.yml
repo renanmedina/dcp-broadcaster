@@ -1,4 +1,10 @@
 version: "3.9"
+x-default-logging: &logging
+  driver: "json-file"
+  options:
+    max-size: "5m"
+    max-file: "2"
+    tag: "{{.Name}}"
 services:
   dcp-broadcaster-db:
     image: postgres:16-alpine
@@ -9,6 +15,8 @@ services:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=dcp-broadcaster-pwd
       - POSTGRES_HOST_AUTH_METHOD=trust
+    ports:
+      - "5433:5432"
     volumes:
       - ./broadcaster-service/db/create-db.sql:/docker-entrypoint-initdb.d/create_database.sql
     networks:
@@ -25,18 +33,20 @@ services:
       - "3000:3000"
     networks:
       - dcp-broadcaster-network
+    restart: "always"
   dcp-broadcaster-whatsapp-api:
     container_name: dcp-broadcaster-whatsapp-api
     hostname: dcp-broadcaster-whatsapp-api
     build: ./whatsapp-api/
     ports: 
-      - "3005:3000"
+      - "3550:3550"
     environment:
-      - API_KEY=local_whatsapp_api_key  # OPTIONAL
-      - BASE_WEBHOOK_URL=http://localhost:3000/localCallbackExample
-      - ENABLE_LOCAL_CALLBACK_EXAMPLE=TRUE # OPTIONAL, NOT RECOMMENDED FOR PRODUCTION
+      - API_KEY=local_whatsapp_api_key # OPTIONAL
+      - BASE_WEBHOOK_URL=http://localhost:3550/localCallbackExample
+      - ENABLE_LOCAL_CALLBACK_EXAMPLE=FALSE # OPTIONAL, NOT RECOMMENDED FOR PRODUCTION
       - MAX_ATTACHMENT_SIZE=5000000 # IN BYTES
       - SET_MESSAGES_AS_SEEN=TRUE # WILL MARK THE MESSAGES AS READ AUTOMATICALLY
+      - PORT=3550
       # ALL CALLBACKS: auth_failure|authenticated|call|change_state|disconnected|group_join|group_leave|group_update|loading_screen|media_uploaded|message|message_ack|message_create|message_reaction|message_revoke_everyone|qr|ready|contact_changed
       - DISABLED_CALLBACKS=message_ack|message_reaction  # PREVENT SENDING CERTAIN TYPES OF CALLBACKS BACK TO THE WEBHOOK
       - ENABLE_SWAGGER_ENDPOINT=TRUE # OPTIONAL, ENABLES THE /api-docs ENDPOINT
@@ -50,20 +60,23 @@ services:
     networks:
       - dcp-broadcaster-network
     healthcheck:
-      test: ["CMD-SHELL", 'netstat -ltn | grep -c ":3000"']
+      test: ["CMD-SHELL", 'netstat -ltn | grep -c ":3550"']
       interval: 5s
       timeout: 5s
       retries: 5
+    restart: "always"
   dcp-broadcaster:
     container_name: dcp-broadcaster-worker
     build: ./broadcaster-service/
     environment:
-      - ENV_NAME=staging
-      - ENVIRONMENT=staging
+      - ENV_NAME=development
+      - ENVIRONMENT=development
+      - SERVICE_NAME=dcp-broadcaster-worker
+      - OTEL_EXPORTER_OTLP_ENDPOINT=signoz-otel-collector:4317
       - DB_URL=postgres://postgres:dcp-broadcaster-pwd@dcp-broadcaster-db:5432/dcp_broadcaster?sslmode=disable
       - DISCORD_BOT_TOKEN=
       - DISCORD_API_URL=https://discord.com/api/v10
-      - WHATSAPP_API_URL=http://dcp-broadcaster-whatsapp-api:3000
+      - WHATSAPP_API_URL=http://dcp-broadcaster-whatsapp-api:3550
       - WHATSAPP_API_TOKEN=local_whatsapp_api_key
       - WHATSAPP_SESSION_ID=f8377d8d-a589-4242-9ba6-9486a04ef80c
       - LOG_FORMAT=json
@@ -72,10 +85,7 @@ services:
       - RECEIVER_USERNAME=dcp-broadcaster@silvamedina.com.br
       - RECEIVER_PASSWORD=
       - MIGRATIONS_PATH=file://db/migrations
-      - NEW_RELIC_ENABLED=true
-      - NEW_RELIC_LICENSE_KEY=
-      - NEW_RELIC_USER_KEY=
-      - NEW_RELIC_APP_NAME=
+      - OLLAMA_SERVICE_API_URL="http://dcp-ollama-service:11434/api"
     links:
       - dcp-broadcaster-db
       - dcp-broadcaster-whatsapp-api
@@ -87,10 +97,27 @@ services:
     networks:
       - dcp-broadcaster-network
     restart: "always"
+  dcp-ollama-service:
+    image: ollama/ollama:latest
+    container_name: dcp-ollama-service
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    ports:
+      - "11434:11434"
+    # command: "-m /app/models/llama-3.2-1B.gguf"
+    volumes:
+      - ./ollama-service:/root/.ollama
+    networks:
+      - dcp-broadcaster-network
+    restart: "always"
 volumes:
   db-data:
     driver: "local"
-  
 networks:
   dcp-broadcaster-network:
     name: "dcp-broadcaster-network"
