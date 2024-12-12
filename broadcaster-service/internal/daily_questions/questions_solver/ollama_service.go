@@ -47,8 +47,8 @@ func (s OllamaService) SolveFor(question QuestionSolutionRequest) (SolutionRespo
 		return SolutionResponse{}, err
 	}
 
-	solutionCode := byTextResponse.content
-	s.logger.Info(fmt.Sprintf("Ollama Service successfully solved the question with %s", question.programmingLanguge))
+	solutionCode := byTextResponse.Content
+	s.logger.Info(fmt.Sprintf("Ollama Service successfully solved the question with %s", question.ProgrammingLanguge))
 	return SolutionResponse{solutionCode}, nil
 }
 

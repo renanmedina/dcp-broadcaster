@@ -8,18 +8,18 @@ type QuestionSolverService interface {
 }
 
 type QuestionSolutionRequest struct {
-	questionContent    string
-	programmingLanguge string
+	QuestionContent    string
+	ProgrammingLanguge string
 }
 
 func (r QuestionSolutionRequest) Prompt() string {
 	return fmt.Sprintf(
 		"%s can you solve using %s language? return ONLY the solution enclosed in markdown for that language without any example use case",
-		r.questionContent,
-		r.programmingLanguge,
+		r.QuestionContent,
+		r.ProgrammingLanguge,
 	)
 }
 
 type SolutionResponse struct {
-	content string
+	Content string
 }
