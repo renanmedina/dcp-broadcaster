@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"reflect"
 	"strings"
 )
 
@@ -37,8 +38,12 @@ func NewApiClient[T any](config ApiConfig) ApiClient[T] {
 	}
 }
 
-func (c *ApiClient[T]) BuildUrl(path string, params map[string]string) string {
+func (c *ApiClient[T]) BuildUrl(path string, params map[string]interface{}, requestMethod string) string {
 	url := fmt.Sprintf("%s%s", c.baseUrl, path)
+	if requestMethod == "POST" {
+		return url
+	}
+
 	var paramsStrings []string
 
 	for pname, pvalue := range params {
@@ -59,7 +64,7 @@ func parseResult[T any](data []byte) (*T, error) {
 	return &resultData, nil
 }
 
-func (client *ApiClient[T]) Get(path string, params map[string]string, headers map[string]string) (*T, error) {
+func (client *ApiClient[T]) Get(path string, params map[string]interface{}, headers map[string]string) (*T, error) {
 	response, err := client.performRequest("GET", path, params, headers)
 	if err != nil {
 		return nil, err
@@ -67,7 +72,7 @@ func (client *ApiClient[T]) Get(path string, params map[string]string, headers m
 	return client.parseResponse(response, err)
 }
 
-func (client *ApiClient[T]) Post(path string, params map[string]string, headers map[string]string) (*T, error) {
+func (client *ApiClient[T]) Post(path string, params map[string]interface{}, headers map[string]string) (*T, error) {
 	response, err := client.performRequest("POST", path, params, headers)
 	if err != nil {
 		return nil, err
@@ -94,8 +99,8 @@ func (client *ApiClient[T]) parseResponse(response *http.Response, err error) (*
 	return parsed, nil
 }
 
-func (client *ApiClient[T]) performRequest(requestMethod string, path string, params map[string]string, headers map[string]string) (*http.Response, error) {
-	url := client.BuildUrl(path, params)
+func (client *ApiClient[T]) performRequest(requestMethod string, path string, params map[string]interface{}, headers map[string]string) (*http.Response, error) {
+	url := client.BuildUrl(path, params, requestMethod)
 	paramsBuffer := bytes.NewBuffer(make([]byte, 0))
 
 	if len(params) > 0 {
@@ -112,10 +117,11 @@ func (client *ApiClient[T]) performRequest(requestMethod string, path string, pa
 		return nil, err
 	}
 
+	headers["Accept"] = "*/*"
+	headers["Content-Type"] = "application/json"
+
 	if client.authToken != "" {
-		headers["Authorization"] = fmt.Sprintf("%s", client.authToken)
-		headers["Accept"] = "*/*"
-		headers["Content-Type"] = "application/json"
+		headers["Authorization"] = client.authToken
 	}
 
 	for headerKey, headerValue := range headers {
@@ -132,6 +138,8 @@ func (client *ApiClient[T]) performRequest(requestMethod string, path string, pa
 
 func (client *ApiClient[T]) log(message string) {
 	if client.logger != nil {
-		client.logger.Info(message)
+		typeName := reflect.TypeFor[T]().Name()
+		formattedLog := fmt.Sprintf("[%s] %s", typeName, message)
+		client.logger.Info(formattedLog)
 	}
 }

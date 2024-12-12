@@ -1,6 +1,7 @@
 package questions_solver
 
 import (
+	"fmt"
 	"strings"
 	"time"
 
@@ -10,11 +11,11 @@ import (
 const OLLAMA_MODEL_NAME = "llama3.2"
 
 type OllamaService struct {
-	client utils.ApiClient[OllamaApiResponse]
+	client utils.ApiClient[OllamaApi]
 	logger *utils.ApplicationLogger
 }
 
-type OllamaApiResponse struct {
+type OllamaApi struct {
 	ModelName       string    `json:"model"`
 	CreatedAt       time.Time `json:"created_at"`
 	ResponseContent string    `json:"response"`
@@ -25,12 +26,11 @@ type OllamaApiResponse struct {
 
 func (s OllamaService) SolveByText(prompt string) (SolutionResponse, error) {
 	preparedPrompt := preparePromptString(prompt)
-	s.logger.Info(preparedPrompt)
-
-	response, err := s.client.Post("/generate", map[string]string{
+	s.logger.Info(fmt.Sprintf("Sending prompt to Ollama AI %s", prompt))
+	response, err := s.client.Post("/generate", map[string]interface{}{
 		"model":  OLLAMA_MODEL_NAME,
 		"prompt": preparedPrompt,
-		"stream": "false",
+		"stream": false,
 	}, make(map[string]string))
 
 	if err != nil {
@@ -47,12 +47,8 @@ func (s OllamaService) SolveFor(question QuestionSolutionRequest) (SolutionRespo
 		return SolutionResponse{}, err
 	}
 
-	solutionCode, err := extractSolutionCodeFrom(byTextResponse.content, question.programmingLanguge)
-
-	if err != nil {
-		return SolutionResponse{}, err
-	}
-
+	solutionCode := byTextResponse.content
+	s.logger.Info(fmt.Sprintf("Ollama Service successfully solved the question with %s", question.programmingLanguge))
 	return SolutionResponse{solutionCode}, nil
 }
 
@@ -60,9 +56,8 @@ func NewOllamaService() OllamaService {
 	configs := utils.GetConfigs()
 
 	return OllamaService{
-		utils.NewApiClient[OllamaApiResponse](utils.ApiConfig{
+		utils.NewApiClient[OllamaApi](utils.ApiConfig{
 			ApiUrl:     configs.OLLAMA_SERVICE_API_URL,
-			AuthToken:  "",
 			LogEnabled: true,
 		}),
 		utils.GetApplicationLogger(),

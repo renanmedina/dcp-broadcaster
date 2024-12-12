@@ -14,7 +14,7 @@ type QuestionSolutionRequest struct {
 
 func (r QuestionSolutionRequest) Prompt() string {
 	return fmt.Sprintf(
-		"%s can you solve using %s language?",
+		"%s can you solve using %s language? return ONLY the solution enclosed in markdown for that language without any example use case",
 		r.questionContent,
 		r.programmingLanguge,
 	)
