@@ -1,0 +1,1 @@
+ALTER TABLE daily_questions ADD broadcasted boolean NOT NULL DEFAULT false;
