@@ -1,6 +1,7 @@
 package daily_questions
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/google/uuid"
@@ -24,6 +25,27 @@ func (s QuestionSolution) ToDbMap() map[string]interface{} {
 		"programming_language": s.ProgrammingLanguage,
 		"solution_code":        s.SolutionCode,
 	}
+}
+
+func (s QuestionSolution) Filename() string {
+	extensions := map[string]string{
+		"golang": "go",
+		"ruby":   "rb",
+		"php":    "php",
+		"python": "py",
+	}
+
+	extension, exists := extensions[s.ProgrammingLanguage]
+
+	if !exists {
+		extension = s.ProgrammingLanguage
+	}
+
+	return fmt.Sprintf("solution.%s", extension)
+}
+
+func (s QuestionSolution) FileContent() string {
+	return s.SolutionCode
 }
 
 func newQuestionSolution(questionId uuid.UUID, programmingLanguage string, solutionCode string) QuestionSolution {

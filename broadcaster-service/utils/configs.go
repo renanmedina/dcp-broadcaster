@@ -25,6 +25,8 @@ type Configs struct {
 	SERVICE_NAME                 string
 	OPEN_TELEMETRY_COLLECTOR_URL string
 	OLLAMA_SERVICE_API_URL       string
+	GITHUB_API_TOKEN             string
+	GITHUB_REPO_API_URL          string
 	imapConfigs                  *ImapConfigs
 }
 
@@ -70,6 +72,8 @@ func loadConfigs() *Configs {
 		SERVICE_NAME:                 os.Getenv("SERVICE_NAME"),
 		OPEN_TELEMETRY_COLLECTOR_URL: os.Getenv("OTEL_EXPORTER_OTLP_ENDPOINT"),
 		OLLAMA_SERVICE_API_URL:       os.Getenv("OLLAMA_SERVICE_API_URL"),
+		GITHUB_API_TOKEN:             os.Getenv("GITHUB_API_TOKEN"),
+		GITHUB_REPO_API_URL:          os.Getenv("GITHUB_REPO_API_URL"),
 		imapConfigs: &ImapConfigs{
 			ServerUrl:  os.Getenv("RECEIVER_SERVER"),
 			ServerPort: receiverServerPort,

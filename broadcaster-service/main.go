@@ -2,6 +2,8 @@ package main
 
 import (
 	"context"
+	"flag"
+	"net/http"
 	"time"
 
 	"github.com/renanmedina/dcp-broadcaster/internal/daily_questions"
@@ -14,11 +16,35 @@ func main() {
 	monitoringProvider := monitoring.InitTracer()
 	defer monitoringProvider.Shutdown(ctx)
 
-	setup()
-	utils.MigrateDb("up")
-	daily_questions.StartWorker(1 * time.Hour)
+	mode := setup()
+	if mode == "worker" {
+		daily_questions.StartWorker(1 * time.Hour)
+		return
+	}
+	startServer()
 }
 
-func setup() {
+func setup() string {
 	time.Local, _ = time.LoadLocation("America/Sao_Paulo")
+	utils.MigrateDb("up")
+	mode := flag.String("mode", "worker", "worker or webserver")
+	flag.Parse()
+	return *mode
+}
+
+func startServer() {
+	logger := utils.GetApplicationLogger()
+
+	http.HandleFunc("/saveSolutionFile", func(w http.ResponseWriter, r *http.Request) {
+		solutionId := r.URL.Query().Get("id")
+		uc := daily_questions.NewStoreQuestionSolutionFile()
+		uc.Execute(solutionId)
+	})
+
+	logger.Info("Started webserver at http://localhost:3551")
+	err := http.ListenAndServe(":3551", nil)
+
+	if err != nil {
+		panic(err)
+	}
 }

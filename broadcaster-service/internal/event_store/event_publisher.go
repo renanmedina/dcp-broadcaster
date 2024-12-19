@@ -59,6 +59,16 @@ func (p *EventPublisher) Publish(event PublishableEvent) bool {
 	return false
 }
 
+func (p *EventPublisher) PublishBatch(events []PublishableEvent) bool {
+	for _, event := range events {
+		if !p.Publish(event) {
+			return false
+		}
+	}
+
+	return true
+}
+
 func (p *EventPublisher) Subscribe(eventName string, handler *EventHandler) *EventPublisher {
 	eventHandlers, exists := p.handlers[eventName]
 

@@ -26,5 +26,9 @@ func configEventHandlers() map[string][]event_store.EventHandler {
 		QUESTION_SOLVED_EVENT_NAME: {
 			event_store.NewSaveEventToStoreHandler(),
 		},
+		QUESTION_SOLUTION_CREATED_EVENT_NAME: {
+			event_store.NewSaveEventToStoreHandler(),
+			NewStoreQuestionSolutionFileHandler(),
+		},
 	}
 }

@@ -39,8 +39,11 @@ func (uc SolveQuestion) Execute(questionId string, programmingLanguage string) {
 		return
 	}
 
-	event := newQuestionSolved(*question, questionSolution)
-	uc.eventPublisher.Publish(event)
+	events := []event_store.PublishableEvent{
+		newQuestionSolutionCreated(questionSolution),
+		newQuestionSolved(*question, questionSolution),
+	}
+	uc.eventPublisher.PublishBatch(events)
 }
 
 func NewSolveQuestion(solver questions_solver.QuestionSolverService) SolveQuestion {

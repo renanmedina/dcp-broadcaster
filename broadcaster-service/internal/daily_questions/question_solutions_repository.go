@@ -1,13 +1,35 @@
 package daily_questions
 
-import "github.com/renanmedina/dcp-broadcaster/utils"
+import (
+	"errors"
+
+	"github.com/Masterminds/squirrel"
+	"github.com/renanmedina/dcp-broadcaster/utils"
+)
 
 type QuestionSolutionsRepository struct {
 	db     *utils.DatabaseAdapdater
 	logger *utils.ApplicationLogger
 }
 
-const QUESTIONS_SOLUTION_TABLE_NAME = "daily_questions_solutions"
+const (
+	QUESTIONS_SOLUTION_TABLE_NAME = "daily_questions_solutions"
+	QUESTIONS_SOLUTION_FIELDS     = "id, daily_question_id, programming_language, solution_code, created_at, updated_at"
+)
+
+func (r *QuestionSolutionsRepository) GetById(solutionId string) (*QuestionSolution, error) {
+	scanner := r.db.SelectOne(QUESTIONS_SOLUTION_FIELDS, QUESTIONS_SOLUTION_TABLE_NAME, map[string]interface{}{
+		"id": solutionId,
+	})
+
+	solution, err := buildFromDb(*scanner)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &solution, err
+}
 
 func (r *QuestionSolutionsRepository) Save(solution QuestionSolution) (*QuestionSolution, error) {
 	if !solution.Persisted {
@@ -33,4 +55,27 @@ func NewQuestionSolutionsRepository() QuestionSolutionsRepository {
 		utils.GetDatabase(),
 		utils.GetApplicationLogger(),
 	}
+}
+
+func buildFromDb(dbRow squirrel.RowScanner) (QuestionSolution, error) {
+	var solution QuestionSolution
+	err := dbRow.Scan(
+		&solution.Id,
+		&solution.DailyQuestionId,
+		&solution.ProgrammingLanguage,
+		&solution.SolutionCode,
+		&solution.CreatedAt,
+		&solution.UpdatedAt,
+	)
+
+	if err != nil {
+		return QuestionSolution{}, err
+	}
+
+	if solution.Id.String() == "00000000-0000-0000-0000-000000000000" {
+		return QuestionSolution{}, errors.New("can't find QuestionSolution")
+	}
+
+	solution.Persisted = true
+	return solution, nil
 }

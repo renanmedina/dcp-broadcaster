@@ -40,7 +40,7 @@ func NewApiClient[T any](config ApiConfig) ApiClient[T] {
 
 func (c *ApiClient[T]) BuildUrl(path string, params map[string]interface{}, requestMethod string) string {
 	url := fmt.Sprintf("%s%s", c.baseUrl, path)
-	if requestMethod == "POST" {
+	if requestMethod != http.MethodGet {
 		return url
 	}
 
@@ -65,7 +65,7 @@ func parseResult[T any](data []byte) (*T, error) {
 }
 
 func (client *ApiClient[T]) Get(path string, params map[string]interface{}, headers map[string]string) (*T, error) {
-	response, err := client.performRequest("GET", path, params, headers)
+	response, err := client.performRequest(http.MethodGet, path, params, headers)
 	if err != nil {
 		return nil, err
 	}
@@ -73,7 +73,15 @@ func (client *ApiClient[T]) Get(path string, params map[string]interface{}, head
 }
 
 func (client *ApiClient[T]) Post(path string, params map[string]interface{}, headers map[string]string) (*T, error) {
-	response, err := client.performRequest("POST", path, params, headers)
+	response, err := client.performRequest(http.MethodPost, path, params, headers)
+	if err != nil {
+		return nil, err
+	}
+	return client.parseResponse(response, err)
+}
+
+func (client *ApiClient[T]) Put(path string, params map[string]interface{}, headers map[string]string) (*T, error) {
+	response, err := client.performRequest(http.MethodPut, path, params, headers)
 	if err != nil {
 		return nil, err
 	}
@@ -113,6 +121,7 @@ func (client *ApiClient[T]) performRequest(requestMethod string, path string, pa
 	}
 
 	request, err := http.NewRequest(requestMethod, url, paramsBuffer)
+
 	if err != nil {
 		return nil, err
 	}
@@ -128,7 +137,7 @@ func (client *ApiClient[T]) performRequest(requestMethod string, path string, pa
 		request.Header.Add(headerKey, headerValue)
 	}
 
-	client.log(fmt.Sprintf("Sending http request to %s", url))
+	client.log(fmt.Sprintf("[%s] Sending http request to %s", requestMethod, url))
 	response, err := client.httpClient.Do(request)
 	client.log(fmt.Sprintf("Response Status: %s", response.Status))
 	client.log(fmt.Sprintf("Response StatusCode: %d", response.StatusCode))

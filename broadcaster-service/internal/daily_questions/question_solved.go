@@ -24,5 +24,8 @@ func (evt QuestionSolved) ObjectType() string {
 }
 
 func (evt QuestionSolved) EventData() map[string]interface{} {
-	return evt.Question.ToDbMap()
+	return map[string]interface{}{
+		"question": evt.Question.ToDbMap(),
+		"solution": evt.QuestionSolution.ToDbMap(),
+	}
 }
