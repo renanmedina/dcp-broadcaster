@@ -14,7 +14,7 @@ var SolvingLanguages = map[string]LanguageInfo{
 	"elixir":     {"elixir", "ex", true},
 	"csharp":     {"csharp", "cs", true},
 	"java":       {"java", "java", true},
-	"javascript": {"javascript", "javascript", true},
+	"javascript": {"javascript", "js", true},
 	"c++":        {"c++", "cpp", true},
 	"c":          {"c", "c", true},
 	"dart":       {"dart", "dart", true},
