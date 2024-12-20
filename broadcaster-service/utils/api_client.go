@@ -8,6 +8,8 @@ import (
 	"net/http"
 	"reflect"
 	"strings"
+
+	"github.com/renanmedina/dcp-broadcaster/internal/exceptions"
 )
 
 type ApiClient[T any] struct {
@@ -139,6 +141,10 @@ func (client *ApiClient[T]) performRequest(requestMethod string, path string, pa
 
 	client.log(fmt.Sprintf("[%s] Sending http request to %s", requestMethod, url))
 	response, err := client.httpClient.Do(request)
+	if response.StatusCode == http.StatusUnprocessableEntity {
+		return response, exceptions.NewHttpResponseError(response.StatusCode, response.Status)
+	}
+
 	client.log(fmt.Sprintf("Response Status: %s", response.Status))
 	client.log(fmt.Sprintf("Response StatusCode: %d", response.StatusCode))
 

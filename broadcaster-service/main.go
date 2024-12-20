@@ -41,6 +41,20 @@ func startServer() {
 		uc.Execute(solutionId)
 	})
 
+	http.HandleFunc("/saveSolutionFiles", func(w http.ResponseWriter, r *http.Request) {
+		repo := daily_questions.NewQuestionSolutionsRepository()
+		solutions, err := repo.GetAll()
+		if err != nil {
+			w.Write([]byte(err.Error()))
+		}
+
+		uc := daily_questions.NewStoreQuestionSolutionFile()
+		for _, solution := range solutions {
+			uc.Execute(solution.Id.String())
+		}
+
+	})
+
 	logger.Info("Started webserver at http://localhost:3551")
 	err := http.ListenAndServe(":3551", nil)
 

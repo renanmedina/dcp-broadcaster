@@ -1,17 +1,18 @@
 package daily_questions
 
 import (
+	"errors"
 	"fmt"
 
-	"github.com/renanmedina/dcp-broadcaster/internal/event_store"
+	"github.com/renanmedina/dcp-broadcaster/internal/exceptions"
 	"github.com/renanmedina/dcp-broadcaster/utils"
 )
 
 type StoreQuestionSolutionFile struct {
 	solutionsRepository QuestionSolutionsRepository
+	questionsRepository QuestionsRepository
 	githubService       GithubFileStorageService
 	logger              *utils.ApplicationLogger
-	eventPublisher      *event_store.EventPublisher
 }
 
 func (uc StoreQuestionSolutionFile) Execute(solutionId string) {
@@ -19,30 +20,45 @@ func (uc StoreQuestionSolutionFile) Execute(solutionId string) {
 
 	if err != nil {
 		uc.logger.Info(fmt.Sprintf("Solution %s not found", solutionId))
-		return
 	}
 
 	uc.ExecuteFor(solution)
 }
 
-func (uc StoreQuestionSolutionFile) ExecuteFor(solution *QuestionSolution) error {
-	filename := fmt.Sprintf("dcp-solutions/%s/%s", solution.DailyQuestionId, solution.Filename())
-	commiter := NewGithubCommiter("dcp-broadcaster", "dcp-broadcaster@silvamedina.com.br")
-	err := uc.githubService.SaveFile(filename, solution.FileContent(), commiter)
-
+func (uc StoreQuestionSolutionFile) ExecuteFor(solution *QuestionSolution) {
+	question, err := uc.questionsRepository.GetById(solution.DailyQuestionId.String())
 	if err != nil {
-		uc.logger.Info(fmt.Sprintf("Solution %s not found", solution.Id))
-		return err
+		uc.logger.Error(err.Error())
 	}
 
-	return nil
+	commiter := NewGithubCommiter("dcp-broadcaster", "dcp-broadcaster@silvamedina.com.br")
+	questionDateFormatted := question.ReceivedAt.Format("2006-01-02")
+
+	question_filename := fmt.Sprintf("dcp-solutions/%s/%s", questionDateFormatted, "README.md")
+	uc.storeFile(question_filename, question.Text, commiter)
+
+	solution_filename := fmt.Sprintf("dcp-solutions/%s/%s", questionDateFormatted, solution.Filename())
+	uc.storeFile(solution_filename, solution.FileContent(), commiter)
+}
+
+func (uc StoreQuestionSolutionFile) storeFile(filepath string, content string, commiter Commiter) {
+	err := uc.githubService.SaveFile(filepath, content, commiter)
+
+	if err != nil {
+		var fileExits exceptions.GithubFileAlreadyExistsError
+		if errors.As(err, &fileExits) {
+			return
+		}
+
+		uc.logger.Error(err.Error())
+	}
 }
 
 func NewStoreQuestionSolutionFile() StoreQuestionSolutionFile {
 	return StoreQuestionSolutionFile{
 		NewQuestionSolutionsRepository(),
+		NewQuestionsRepository(),
 		NewGithubFileStorageService(),
 		utils.GetApplicationLogger(),
-		newEventPublisher(),
 	}
 }

@@ -31,6 +31,37 @@ func (r *QuestionSolutionsRepository) GetById(solutionId string) (*QuestionSolut
 	return &solution, err
 }
 
+func (r *QuestionSolutionsRepository) GetAll() ([]QuestionSolution, error) {
+	rows, err := r.db.Select(QUESTIONS_SOLUTION_FIELDS, QUESTIONS_SOLUTION_TABLE_NAME, nil)
+	defer rows.Close()
+
+	if err != nil {
+		return make([]QuestionSolution, 0), err
+	}
+
+	var solutions []QuestionSolution
+
+	for rows.Next() {
+		var solution QuestionSolution
+		err = rows.Scan(
+			&solution.Id,
+			&solution.DailyQuestionId,
+			&solution.ProgrammingLanguage,
+			&solution.SolutionCode,
+			&solution.CreatedAt,
+			&solution.UpdatedAt,
+		)
+
+		if err != nil {
+			panic(err.Error())
+		}
+
+		solutions = append(solutions, solution)
+	}
+
+	return solutions, nil
+}
+
 func (r *QuestionSolutionsRepository) Save(solution QuestionSolution) (*QuestionSolution, error) {
 	if !solution.Persisted {
 		_, err := r.db.Insert(QUESTIONS_SOLUTION_TABLE_NAME, solution.ToDbMap())

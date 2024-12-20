@@ -2,8 +2,10 @@ package daily_questions
 
 import (
 	"encoding/base64"
+	"errors"
 	"fmt"
 
+	"github.com/renanmedina/dcp-broadcaster/internal/exceptions"
 	"github.com/renanmedina/dcp-broadcaster/utils"
 )
 
@@ -40,6 +42,8 @@ type Commiter struct {
 	Email string `json:"email"`
 }
 
+var ErrGithubFileAlreadyExists = errors.New("File already exists")
+
 func (s GithubFileStorageService) SaveFile(filename string, content string, author Commiter) error {
 	path := fmt.Sprintf("/contents/%s", filename)
 	encoder := base64.StdEncoding
@@ -57,6 +61,11 @@ func (s GithubFileStorageService) SaveFile(filename string, content string, auth
 	_, err := s.client.Put(path, params, headers)
 
 	if err != nil {
+		var unprocessableError exceptions.HttpUnprocessableEntityError
+		if errors.As(err, &unprocessableError) {
+			return exceptions.GithubFileAlreadyExistsError{}
+		}
+
 		s.logger.Error(err.Error())
 		return err
 	}
