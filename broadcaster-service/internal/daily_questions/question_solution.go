@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/renanmedina/dcp-broadcaster/internal/daily_questions/questions_solver"
 )
 
 type QuestionSolution struct {
@@ -28,17 +29,11 @@ func (s QuestionSolution) ToDbMap() map[string]interface{} {
 }
 
 func (s QuestionSolution) Filename() string {
-	extensions := map[string]string{
-		"golang": "go",
-		"ruby":   "rb",
-		"php":    "php",
-		"python": "py",
-	}
+	extension := s.ProgrammingLanguage
+	languageInfo, exists := questions_solver.SolvingLanguages[s.ProgrammingLanguage]
 
-	extension, exists := extensions[s.ProgrammingLanguage]
-
-	if !exists {
-		extension = s.ProgrammingLanguage
+	if exists {
+		extension = languageInfo.FileExtension
 	}
 
 	return fmt.Sprintf("solution.%s", extension)

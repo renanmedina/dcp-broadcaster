@@ -10,10 +10,9 @@ type SolveQuestionHandler struct{}
 func (handler SolveQuestionHandler) Handle(evt event_store.PublishableEvent) {
 	questionId := evt.ObjectId()
 	use_case := NewSolveQuestion(questions_solver.NewOllamaService())
-	languages := []string{"golang", "python", "php", "ruby"}
 
-	for _, language := range languages {
-		go use_case.Execute(questionId, language)
+	for _, language := range questions_solver.SolvingLanguages {
+		go use_case.Execute(questionId, language.LanguageName)
 	}
 }
 
