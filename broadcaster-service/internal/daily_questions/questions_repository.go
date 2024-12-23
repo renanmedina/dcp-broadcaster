@@ -1,28 +1,24 @@
 package daily_questions
 
 import (
-	"errors"
-
-	"github.com/Masterminds/squirrel"
 	"github.com/renanmedina/dcp-broadcaster/utils"
+	"gorm.io/gorm"
 )
 
 const (
 	QUESTIONS_TABLE_NAME    = "daily_questions"
 	UNIQUE_CONSTRAINT_ERROR = "unique_violation"
-	FIELDS                  = "id, original_id, difficulty_level, received_at, title, question_email_body, question_text, company_name, created_at, updated_at"
 )
 
 type QuestionsRepository struct {
-	db *utils.DatabaseAdapdater
+	db *gorm.DB
 }
 
 func (r *QuestionsRepository) GetLatest() *Question {
-	scanner := r.db.SelectOne(FIELDS, QUESTIONS_TABLE_NAME, map[string]interface{}{}, "received_at desc")
+	var question Question
+	result := r.db.Table(QUESTIONS_TABLE_NAME).Limit(1).Order("received_at desc").Find(&question)
 
-	question, err := buildQuestionFromDb(*scanner)
-
-	if err != nil {
+	if result.Error != nil {
 		return nil
 	}
 
@@ -30,81 +26,39 @@ func (r *QuestionsRepository) GetLatest() *Question {
 }
 
 func (r *QuestionsRepository) GetByOriginalId(id string) (*Question, error) {
-	scanner := r.db.SelectOne(FIELDS, QUESTIONS_TABLE_NAME, map[string]interface{}{
-		"original_id": id,
-	})
+	var question Question
+	result := r.db.Table(QUESTIONS_TABLE_NAME).First(&question, "original_id = ?", id)
 
-	question, err := buildQuestionFromDb(*scanner)
-
-	if err != nil {
-		return nil, err
+	if result.Error != nil {
+		return nil, result.Error
 	}
 
-	return &question, err
+	return &question, nil
 }
 
 func (r *QuestionsRepository) GetById(id string) (*Question, error) {
-	scanner := r.db.SelectOne(FIELDS, QUESTIONS_TABLE_NAME, map[string]interface{}{
-		"id": id,
-	})
+	var question Question
+	result := r.db.Table(QUESTIONS_TABLE_NAME).First(&question, id)
 
-	question, err := buildQuestionFromDb(*scanner)
-
-	if err != nil {
-		return nil, err
+	if result.Error != nil {
+		return nil, result.Error
 	}
 
-	return &question, err
+	return &question, nil
 }
 
 func (r *QuestionsRepository) Save(question Question) (*Question, error) {
-	if !question.Persisted {
-		_, err := r.db.Insert(QUESTIONS_TABLE_NAME, question.ToDbMap())
+	result := r.db.Table(QUESTIONS_TABLE_NAME).Save(&question)
 
-		if err != nil {
-			return nil, err
-		}
-	} else {
-		_, err := r.db.UpdateById(QUESTIONS_TABLE_NAME, question.Id.String(), question.ToDbMap())
-
-		if err != nil {
-			return nil, err
-		}
+	if result.Error != nil {
+		return nil, result.Error
 	}
 
-	question.Persisted = true
 	return &question, nil
 }
 
 func NewQuestionsRepository() QuestionsRepository {
 	return QuestionsRepository{
-		db: utils.GetDatabase(),
+		db: utils.GetDatabaseConnection(),
 	}
-}
-
-func buildQuestionFromDb(dbRow squirrel.RowScanner) (Question, error) {
-	var question Question
-	err := dbRow.Scan(
-		&question.Id,
-		&question.OriginalId,
-		&question.DifficultyLevel,
-		&question.ReceivedAt,
-		&question.Title,
-		&question.EmailBody,
-		&question.Text,
-		&question.CompanyName,
-		&question.CreatedAt,
-		&question.UpdatedAt,
-	)
-
-	if err != nil {
-		return Question{}, err
-	}
-
-	if question.Id.String() == "00000000-0000-0000-0000-000000000000" {
-		return Question{}, errors.New("can't find User")
-	}
-
-	question.Persisted = true
-	return question, nil
 }

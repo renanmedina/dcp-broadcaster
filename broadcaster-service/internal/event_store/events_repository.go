@@ -5,17 +5,18 @@ import (
 	"fmt"
 
 	"github.com/renanmedina/dcp-broadcaster/utils"
+	"gorm.io/gorm"
 )
 
 const TABLE_NAME = "events"
 
 type EventsRepository struct {
-	db *utils.DatabaseAdapdater
+	db *gorm.DB
 }
 
 func NewEventsRepository() *EventsRepository {
 	return &EventsRepository{
-		db: utils.GetDatabase(),
+		db: utils.GetDatabaseConnection(),
 	}
 }
 
@@ -27,15 +28,17 @@ func (r *EventsRepository) Save(event PublishableEvent) error {
 		return err
 	}
 
-	_, err = r.db.Insert(TABLE_NAME, map[string]interface{}{
+	dbValues := map[string]interface{}{
 		"event_name":  event.Name(),
 		"object_id":   event.ObjectId(),
 		"object_type": event.ObjectType(),
 		"event_data":  eventData,
-	})
+	}
 
-	if err != nil {
-		return err
+	result := r.db.Table(TABLE_NAME).Create(dbValues)
+
+	if result.Error != nil {
+		return result.Error
 	}
 
 	return nil
