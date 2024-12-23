@@ -6,17 +6,24 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/renanmedina/dcp-broadcaster/internal/daily_questions/questions_solver"
+	"gorm.io/gorm"
 )
 
 type QuestionSolution struct {
-	Id                  uuid.UUID
+	gorm.Model
+	Id                  uuid.UUID `gorm:"primaryKey"`
 	DailyQuestionId     uuid.UUID
 	ProgrammingLanguage string
 	SolutionCode        string
 	CreatedAt           time.Time
 	UpdatedAt           time.Time
 	DeletedAt           time.Time
-	Persisted           bool
+}
+
+// gorm before create hook
+func (q *QuestionSolution) BeforeCreate(tx *gorm.DB) (err error) {
+	q.Id = uuid.New()
+	return nil
 }
 
 func (s QuestionSolution) ToDbMap() map[string]interface{} {
@@ -45,7 +52,6 @@ func (s QuestionSolution) FileContent() string {
 
 func newQuestionSolution(questionId uuid.UUID, programmingLanguage string, solutionCode string) QuestionSolution {
 	return QuestionSolution{
-		Id:                  uuid.New(),
 		DailyQuestionId:     questionId,
 		ProgrammingLanguage: programmingLanguage,
 		SolutionCode:        solutionCode,

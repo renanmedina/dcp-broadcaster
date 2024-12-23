@@ -4,20 +4,27 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"gorm.io/gorm"
 )
 
 type Question struct {
-	Id              uuid.UUID
+	gorm.Model
+	Id              uuid.UUID `gorm:"primaryKey"`
 	OriginalId      string
 	DifficultyLevel string
 	Title           string
-	EmailBody       string
-	Text            string
+	EmailBody       string `gorm:"column:question_email_body"`
+	Text            string `gorm:"column:question_text"`
 	CompanyName     string
 	ReceivedAt      time.Time
 	CreatedAt       time.Time
 	UpdatedAt       time.Time
-	Persisted       bool
+}
+
+// gorm before create hook
+func (q *Question) BeforeCreate(tx *gorm.DB) (err error) {
+	q.Id = uuid.New()
+	return nil
 }
 
 func (q *Question) ToDbMap() map[string]interface{} {
@@ -47,7 +54,6 @@ func (q *Question) ToLogMap() map[string]interface{} {
 
 func NewQuestionFromEmailMetadata(metadata QuestionEmailMetadata) Question {
 	return Question{
-		Id:              uuid.New(),
 		OriginalId:      metadata.MessageId,
 		Title:           metadata.Title,
 		EmailBody:       metadata.BodyHtml,

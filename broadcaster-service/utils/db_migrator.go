@@ -1,16 +1,23 @@
 package utils
 
 import (
+	"database/sql"
+
 	"github.com/golang-migrate/migrate/v4"
 	"github.com/golang-migrate/migrate/v4/database/postgres"
 )
 
+type DatabaseMigrator struct {
+	migratorConnection *migrate.Migrate
+	migrationsPath     string
+}
+
 func MigrateDb(dir string) {
-	db := GetDatabase()
+	migrator := GetDatabaseMigrator()
 	logger := GetApplicationLogger()
 
 	logger.Info("Migrating database")
-	err := db.Migrate(dir, GetConfigs().MIGRATIONS_PATH)
+	err := migrator.Migrate(dir)
 
 	if err != nil {
 		logger.Error(err.Error())
@@ -20,8 +27,8 @@ func MigrateDb(dir string) {
 	logger.Info("Migration success")
 }
 
-func (adapter *DatabaseAdapdater) GetMigrator(migrationsPath string) (*migrate.Migrate, error) {
-	driver, err := postgres.WithInstance(adapter.db, &postgres.Config{})
+func NewDatabaseMigrator(conn *sql.DB, migrationsPath string) (*DatabaseMigrator, error) {
+	driver, err := postgres.WithInstance(conn, &postgres.Config{})
 
 	if err != nil {
 		return nil, err
@@ -37,20 +44,16 @@ func (adapter *DatabaseAdapdater) GetMigrator(migrationsPath string) (*migrate.M
 		return nil, err
 	}
 
-	return migrator, nil
+	return &DatabaseMigrator{migrator, migrationsPath}, nil
 }
 
-func (adapter *DatabaseAdapdater) Migrate(dir string, migrationsPath string) error {
-	migrator, err := adapter.GetMigrator(migrationsPath)
-
-	if err != nil {
-		return err
-	}
+func (migrator *DatabaseMigrator) Migrate(dir string) error {
+	var err error
 
 	if dir == "" || dir == "up" {
-		err = migrator.Up()
+		err = migrator.migratorConnection.Up()
 	} else {
-		err = migrator.Down()
+		err = migrator.migratorConnection.Down()
 	}
 
 	if err != nil {
