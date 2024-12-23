@@ -31,7 +31,7 @@ func (uc StoreQuestionSolutionFile) ExecuteFor(solution *QuestionSolution) {
 		uc.logger.Error(err.Error())
 	}
 
-	commiter := NewGithubCommiter("dcp-broadcaster", "dcp-broadcaster@silvamedina.com.br")
+	commiter := NewGithubCommiter("dcp-solver", "dcp-solver@silvamedina.com.br")
 	questionDateFormatted := question.ReceivedAt.Format("2006-01-02")
 
 	question_filename := fmt.Sprintf("dcp-solutions/%s/%s", questionDateFormatted, "README.md")
