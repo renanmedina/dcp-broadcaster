@@ -4,15 +4,23 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"gorm.io/gorm"
 )
 
 type User struct {
-	Id          uuid.UUID
+	gorm.Model
+	Id          uuid.UUID `gorm:"primaryKey"`
 	Username    string
 	Name        string
 	PhoneNumber string
 	CreatedAt   time.Time
 	UpdatedAt   time.Time
+}
+
+// gorm before create hook
+func (u *User) BeforeCreate(tx *gorm.DB) (err error) {
+	u.Id = uuid.New()
+	return nil
 }
 
 func (u *User) ToDbMap() map[string]interface{} {
