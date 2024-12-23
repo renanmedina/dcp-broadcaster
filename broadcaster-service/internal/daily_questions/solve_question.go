@@ -24,7 +24,8 @@ func (uc SolveQuestion) Execute(questionId string, programmingLanguage string) {
 		return
 	}
 
-	solvedQuestion, err := uc.solver.SolveFor(questions_solver.QuestionSolutionRequest{question.Text, programmingLanguage})
+	request := questions_solver.SolveQuestionRequest{QuestionContent: question.Text, ProgrammingLanguge: programmingLanguage}
+	solvedQuestion, err := uc.solver.SolveFor(request)
 
 	if err != nil {
 		uc.logger.Error(err.Error())

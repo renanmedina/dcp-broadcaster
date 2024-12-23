@@ -40,7 +40,7 @@ func (s OllamaService) SolveByText(prompt string) (SolutionResponse, error) {
 	return SolutionResponse{response.ResponseContent}, nil
 }
 
-func (s OllamaService) SolveFor(question QuestionSolutionRequest) (SolutionResponse, error) {
+func (s OllamaService) SolveFor(question SolveQuestionRequest) (SolutionResponse, error) {
 	byTextResponse, err := s.SolveByText(question.Prompt())
 
 	if err != nil {

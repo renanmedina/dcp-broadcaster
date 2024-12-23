@@ -6,6 +6,9 @@ import (
 
 	"github.com/Masterminds/squirrel"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
+	gormPostgres "gorm.io/driver/postgres"
+	"gorm.io/gorm"
+	gormLogger "gorm.io/gorm/logger"
 )
 
 type DatabaseAdapdater struct {
@@ -17,6 +20,7 @@ type DbRecordable interface {
 }
 
 var dbAdapter *DatabaseAdapdater
+var dbConnection *gorm.DB
 
 func init() {
 	initDB()
@@ -34,11 +38,24 @@ func initDB() {
 		panic(err)
 	}
 
+	db, err := gorm.Open(gormPostgres.New(gormPostgres.Config{Conn: openedDb}), &gorm.Config{
+		Logger: gormLogger.Default.LogMode(gormLogger.Silent),
+	})
+
+	if err != nil {
+		panic(err)
+	}
+
+	dbConnection = db
 	dbAdapter = &DatabaseAdapdater{openedDb}
 }
 
 func GetDatabase() *DatabaseAdapdater {
 	return dbAdapter
+}
+
+func GetDatabaseConnection() *gorm.DB {
+	return dbConnection
 }
 
 func (adapter *DatabaseAdapdater) GetConnection() *sql.DB {
