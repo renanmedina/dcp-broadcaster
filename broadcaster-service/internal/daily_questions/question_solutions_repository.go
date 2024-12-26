@@ -27,7 +27,7 @@ func (r *QuestionSolutionsRepository) GetById(solutionId string) (*QuestionSolut
 
 func (r *QuestionSolutionsRepository) GetAll() ([]QuestionSolution, error) {
 	var solutions []QuestionSolution
-	result := r.db.Find(&solutions)
+	result := r.db.Table(QUESTIONS_SOLUTION_TABLE_NAME).Find(&solutions)
 
 	if result.Error != nil {
 		return make([]QuestionSolution, 0), result.Error
@@ -37,7 +37,7 @@ func (r *QuestionSolutionsRepository) GetAll() ([]QuestionSolution, error) {
 }
 
 func (r *QuestionSolutionsRepository) Save(solution QuestionSolution) (*QuestionSolution, error) {
-	result := r.db.Save(&solution)
+	result := r.db.Table(QUESTIONS_SOLUTION_TABLE_NAME).Save(&solution)
 
 	if result.Error != nil {
 		return nil, result.Error
