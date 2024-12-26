@@ -15,7 +15,7 @@ func (evt QuestionBroadcastedToUsers) Name() string {
 }
 
 func (evt QuestionBroadcastedToUsers) ObjectId() string {
-	return evt.Question.Id.String()
+	return evt.Question.Id
 }
 
 func (evt QuestionBroadcastedToUsers) ObjectType() string {

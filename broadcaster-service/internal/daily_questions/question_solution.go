@@ -11,8 +11,8 @@ import (
 
 type QuestionSolution struct {
 	gorm.Model
-	Id                  uuid.UUID `gorm:"primaryKey"`
-	DailyQuestionId     uuid.UUID
+	Id                  string `gorm:"primaryKey"`
+	DailyQuestionId     string
 	ProgrammingLanguage string
 	SolutionCode        string
 	CreatedAt           time.Time
@@ -22,7 +22,7 @@ type QuestionSolution struct {
 
 // gorm before create hook
 func (q *QuestionSolution) BeforeCreate(tx *gorm.DB) (err error) {
-	q.Id = uuid.New()
+	q.Id = uuid.New().String()
 	return nil
 }
 
@@ -50,7 +50,7 @@ func (s QuestionSolution) FileContent() string {
 	return s.SolutionCode
 }
 
-func newQuestionSolution(questionId uuid.UUID, programmingLanguage string, solutionCode string) QuestionSolution {
+func newQuestionSolution(questionId string, programmingLanguage string, solutionCode string) QuestionSolution {
 	return QuestionSolution{
 		DailyQuestionId:     questionId,
 		ProgrammingLanguage: programmingLanguage,

@@ -9,7 +9,7 @@ import (
 
 type Question struct {
 	gorm.Model
-	Id              uuid.UUID `gorm:"primaryKey"`
+	Id              string `gorm:"primaryKey"`
 	OriginalId      string
 	DifficultyLevel string
 	Title           string
@@ -23,7 +23,7 @@ type Question struct {
 
 // gorm before create hook
 func (q *Question) BeforeCreate(tx *gorm.DB) (err error) {
-	q.Id = uuid.New()
+	q.Id = uuid.New().String()
 	return nil
 }
 

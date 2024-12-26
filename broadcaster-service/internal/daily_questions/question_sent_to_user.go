@@ -18,7 +18,7 @@ func (evt QuestionSentToUser) Name() string {
 }
 
 func (evt QuestionSentToUser) ObjectId() string {
-	return evt.Question.Id.String()
+	return evt.Question.Id
 }
 
 func (evt QuestionSentToUser) ObjectType() string {

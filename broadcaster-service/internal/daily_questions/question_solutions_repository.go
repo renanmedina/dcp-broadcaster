@@ -36,14 +36,14 @@ func (r *QuestionSolutionsRepository) GetAll() ([]QuestionSolution, error) {
 	return solutions, nil
 }
 
-func (r *QuestionSolutionsRepository) Save(solution QuestionSolution) (*QuestionSolution, error) {
+func (r *QuestionSolutionsRepository) Save(solution QuestionSolution) (QuestionSolution, error) {
 	result := r.db.Table(QUESTIONS_SOLUTION_TABLE_NAME).Save(&solution)
 
 	if result.Error != nil {
-		return nil, result.Error
+		return QuestionSolution{}, result.Error
 	}
 
-	return &solution, nil
+	return solution, nil
 }
 
 func NewQuestionSolutionsRepository() QuestionSolutionsRepository {

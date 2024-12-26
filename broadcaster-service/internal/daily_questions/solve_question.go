@@ -32,8 +32,8 @@ func (uc SolveQuestion) Execute(questionId string, programmingLanguage string) {
 		return
 	}
 
-	newSolution := newQuestionSolution(question.Id, programmingLanguage, solvedQuestion.Content)
-	questionSolution, err := uc.solutionsRepository.Save(newSolution)
+	questionSolution := newQuestionSolution(question.Id, programmingLanguage, solvedQuestion.Content)
+	questionSolution, err = uc.solutionsRepository.Save(questionSolution)
 
 	if err != nil {
 		uc.logger.Error(err.Error())
@@ -41,8 +41,8 @@ func (uc SolveQuestion) Execute(questionId string, programmingLanguage string) {
 	}
 
 	events := []event_store.PublishableEvent{
-		newQuestionSolutionCreated(*questionSolution),
-		newQuestionSolved(*question, *questionSolution),
+		newQuestionSolutionCreated(questionSolution),
+		newQuestionSolved(*question, questionSolution),
 	}
 	uc.eventPublisher.PublishBatch(events)
 }

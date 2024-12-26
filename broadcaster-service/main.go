@@ -50,7 +50,7 @@ func startServer() {
 
 		uc := daily_questions.NewStoreQuestionSolutionFile()
 		for _, solution := range solutions {
-			uc.Execute(solution.Id.String())
+			uc.Execute(solution.Id)
 		}
 
 	})

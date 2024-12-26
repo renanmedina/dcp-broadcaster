@@ -15,7 +15,7 @@ func (evt QuestionSolutionCreated) Name() string {
 }
 
 func (evt QuestionSolutionCreated) ObjectId() string {
-	return evt.QuestionSolution.Id.String()
+	return evt.QuestionSolution.Id
 }
 
 func (evt QuestionSolutionCreated) ObjectType() string {

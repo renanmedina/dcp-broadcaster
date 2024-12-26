@@ -26,7 +26,7 @@ func (uc StoreQuestionSolutionFile) Execute(solutionId string) {
 }
 
 func (uc StoreQuestionSolutionFile) ExecuteFor(solution *QuestionSolution) {
-	question, err := uc.questionsRepository.GetById(solution.DailyQuestionId.String())
+	question, err := uc.questionsRepository.GetById(solution.DailyQuestionId)
 	if err != nil {
 		uc.logger.Error(err.Error())
 	}
