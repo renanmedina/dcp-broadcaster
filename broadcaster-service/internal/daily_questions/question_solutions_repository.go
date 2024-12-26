@@ -16,7 +16,7 @@ const (
 
 func (r *QuestionSolutionsRepository) GetById(solutionId string) (*QuestionSolution, error) {
 	var solution QuestionSolution
-	result := r.db.Table(QUESTIONS_SOLUTION_TABLE_NAME).First(&solution, solutionId)
+	result := r.db.Table(QUESTIONS_SOLUTION_TABLE_NAME).First(&solution, "id = ?", solutionId)
 
 	if result.Error != nil {
 		return nil, result.Error

@@ -38,7 +38,7 @@ func (r *QuestionsRepository) GetByOriginalId(id string) (*Question, error) {
 
 func (r *QuestionsRepository) GetById(id string) (*Question, error) {
 	var question Question
-	result := r.db.Table(QUESTIONS_TABLE_NAME).First(&question, id)
+	result := r.db.Table(QUESTIONS_TABLE_NAME).First(&question, "id = ?", id)
 
 	if result.Error != nil {
 		return nil, result.Error

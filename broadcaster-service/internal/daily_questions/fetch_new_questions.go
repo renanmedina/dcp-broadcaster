@@ -57,7 +57,7 @@ func (uc *FetchNewQuestions) processQuestions(questions []Question, trace *monit
 	for _, question := range questions {
 		trace.NewChildSpan(fmt.Sprintf("FetchNewQuestions.processQuestions[%s]", question.Id.String()))
 
-		_, err := uc.questionsRepository.Save(question)
+		question, err := uc.questionsRepository.Save(question)
 
 		if err != nil {
 
@@ -76,7 +76,7 @@ func (uc *FetchNewQuestions) processQuestions(questions []Question, trace *monit
 
 		uc.logger.Info("Processed message received from questions service", "question", question.ToLogMap())
 		trace.NewChildSpan(fmt.Sprintf("event_store.EventPublisher.publish[QuestionCreated][%s]", question.Id.String()))
-		uc.publisher.Publish(newQuestionCreated(question))
+		uc.publisher.Publish(newQuestionCreated(*question))
 		newlyProcessed += 1
 	}
 
