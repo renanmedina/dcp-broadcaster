@@ -12,10 +12,6 @@ type QuestionSolutionsRepository struct {
 	logger *utils.ApplicationLogger
 }
 
-const (
-	QUESTIONS_SOLUTION_TABLE_NAME = "daily_questions_solutions"
-)
-
 type QuestionSolutionNotFound struct {
 	msg string
 }
@@ -30,7 +26,7 @@ func NewQuestionSolutionNotFound(msg string) QuestionSolutionNotFound {
 
 func (r *QuestionSolutionsRepository) GetById(solutionId string) (*QuestionSolution, error) {
 	var solution QuestionSolution
-	result := r.db.Table(QUESTIONS_SOLUTION_TABLE_NAME).First(&solution, "id = ?", solutionId)
+	result := r.db.WithContext(r.logger.GetCurrentContext()).First(&solution, "id = ?", solutionId)
 
 	if result.Error != nil {
 		return nil, NewQuestionSolutionNotFound(fmt.Sprintf("Solution %s not found", solutionId))
@@ -41,7 +37,7 @@ func (r *QuestionSolutionsRepository) GetById(solutionId string) (*QuestionSolut
 
 func (r *QuestionSolutionsRepository) GetAll() ([]QuestionSolution, error) {
 	var solutions []QuestionSolution
-	result := r.db.Table(QUESTIONS_SOLUTION_TABLE_NAME).Find(&solutions)
+	result := r.db.WithContext(r.logger.GetCurrentContext()).Find(&solutions)
 
 	if result.Error != nil {
 		return make([]QuestionSolution, 0), result.Error
@@ -51,7 +47,7 @@ func (r *QuestionSolutionsRepository) GetAll() ([]QuestionSolution, error) {
 }
 
 func (r *QuestionSolutionsRepository) Save(solution QuestionSolution) (QuestionSolution, error) {
-	result := r.db.Table(QUESTIONS_SOLUTION_TABLE_NAME).Save(&solution)
+	result := r.db.WithContext(r.logger.GetCurrentContext()).Save(&solution)
 
 	if result.Error != nil {
 		return QuestionSolution{}, result.Error

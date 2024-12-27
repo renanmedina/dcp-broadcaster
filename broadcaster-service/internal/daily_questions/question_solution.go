@@ -21,9 +21,13 @@ type QuestionSolution struct {
 }
 
 // gorm before create hook
-func (q *QuestionSolution) BeforeCreate(tx *gorm.DB) (err error) {
-	q.Id = uuid.New().String()
+func (s *QuestionSolution) BeforeCreate(tx *gorm.DB) (err error) {
+	s.Id = uuid.New().String()
 	return nil
+}
+
+func (QuestionSolution) TableName() string {
+	return "daily_questions_solutions"
 }
 
 func (s QuestionSolution) ToDbMap() map[string]interface{} {

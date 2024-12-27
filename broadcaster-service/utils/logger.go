@@ -81,6 +81,10 @@ func (appLogger *ApplicationLogger) WithContext(ctx context.Context) *Applicatio
 	return appLogger
 }
 
+func (appLogger *ApplicationLogger) GetCurrentContext() context.Context {
+	return appLogger.currentContext
+}
+
 func (appLogger *ApplicationLogger) Info(msg string, args ...any) {
 	appLogger.logger.Info(msg, appLogger.addAppAttributes(args)...)
 }

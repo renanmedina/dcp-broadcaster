@@ -6,17 +6,17 @@ import (
 )
 
 const (
-	QUESTIONS_TABLE_NAME    = "daily_questions"
 	UNIQUE_CONSTRAINT_ERROR = "unique_violation"
 )
 
 type QuestionsRepository struct {
-	db *gorm.DB
+	db     *gorm.DB
+	logger *utils.ApplicationLogger
 }
 
 func (r *QuestionsRepository) GetLatest() *Question {
 	var question Question
-	result := r.db.Table(QUESTIONS_TABLE_NAME).Limit(1).Order("received_at desc").Find(&question)
+	result := r.db.WithContext(r.logger.GetCurrentContext()).Limit(1).Order("received_at desc").Find(&question)
 
 	if result.Error != nil {
 		return nil
@@ -27,7 +27,7 @@ func (r *QuestionsRepository) GetLatest() *Question {
 
 func (r *QuestionsRepository) GetByOriginalId(id string) (*Question, error) {
 	var question Question
-	result := r.db.Table(QUESTIONS_TABLE_NAME).First(&question, "original_id = ?", id)
+	result := r.db.WithContext(r.logger.GetCurrentContext()).First(&question, "original_id = ?", id)
 
 	if result.Error != nil {
 		return nil, result.Error
@@ -38,7 +38,7 @@ func (r *QuestionsRepository) GetByOriginalId(id string) (*Question, error) {
 
 func (r *QuestionsRepository) GetById(id string) (*Question, error) {
 	var question Question
-	result := r.db.Table(QUESTIONS_TABLE_NAME).First(&question, "id = ?", id)
+	result := r.db.WithContext(r.logger.GetCurrentContext()).First(&question, "id = ?", id)
 
 	if result.Error != nil {
 		return nil, result.Error
@@ -48,7 +48,7 @@ func (r *QuestionsRepository) GetById(id string) (*Question, error) {
 }
 
 func (r *QuestionsRepository) Save(question Question) (*Question, error) {
-	result := r.db.Table(QUESTIONS_TABLE_NAME).Save(&question)
+	result := r.db.WithContext(r.logger.GetCurrentContext()).Save(&question)
 
 	if result.Error != nil {
 		return nil, result.Error
@@ -59,6 +59,7 @@ func (r *QuestionsRepository) Save(question Question) (*Question, error) {
 
 func NewQuestionsRepository() QuestionsRepository {
 	return QuestionsRepository{
-		db: utils.GetDatabaseConnection(),
+		db:     utils.GetDatabaseConnection(),
+		logger: utils.GetApplicationLogger(),
 	}
 }

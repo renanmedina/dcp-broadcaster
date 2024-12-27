@@ -5,6 +5,7 @@ import (
 	"time"
 
 	_ "github.com/golang-migrate/migrate/v4/source/file"
+	"github.com/uptrace/opentelemetry-go-extra/otelgorm"
 	gormPostgres "gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	gormLogger "gorm.io/gorm/logger"
@@ -34,6 +35,10 @@ func initDB() {
 	})
 
 	if err != nil {
+		panic(err)
+	}
+
+	if err = db.Use(otelgorm.NewPlugin()); err != nil {
 		panic(err)
 	}
 

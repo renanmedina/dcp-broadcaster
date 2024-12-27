@@ -27,6 +27,10 @@ func (q *Question) BeforeCreate(tx *gorm.DB) (err error) {
 	return nil
 }
 
+func (Question) TableName() string {
+	return "daily_questions"
+}
+
 func (q *Question) ToDbMap() map[string]interface{} {
 	return map[string]interface{}{
 		"id":                  q.Id,
