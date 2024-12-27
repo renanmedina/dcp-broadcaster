@@ -1,6 +1,8 @@
 package daily_questions
 
 import (
+	"fmt"
+
 	"github.com/renanmedina/dcp-broadcaster/utils"
 	"gorm.io/gorm"
 )
@@ -14,12 +16,24 @@ const (
 	QUESTIONS_SOLUTION_TABLE_NAME = "daily_questions_solutions"
 )
 
+type QuestionSolutionNotFound struct {
+	msg string
+}
+
+func (e QuestionSolutionNotFound) Error() string {
+	return e.msg
+}
+
+func NewQuestionSolutionNotFound(msg string) QuestionSolutionNotFound {
+	return QuestionSolutionNotFound{msg}
+}
+
 func (r *QuestionSolutionsRepository) GetById(solutionId string) (*QuestionSolution, error) {
 	var solution QuestionSolution
 	result := r.db.Table(QUESTIONS_SOLUTION_TABLE_NAME).First(&solution, "id = ?", solutionId)
 
 	if result.Error != nil {
-		return nil, result.Error
+		return nil, NewQuestionSolutionNotFound(fmt.Sprintf("Solution %s not found", solutionId))
 	}
 
 	return &solution, nil

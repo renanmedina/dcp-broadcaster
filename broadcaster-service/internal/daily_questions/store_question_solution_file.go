@@ -15,20 +15,22 @@ type StoreQuestionSolutionFile struct {
 	logger              *utils.ApplicationLogger
 }
 
-func (uc StoreQuestionSolutionFile) Execute(solutionId string) {
+func (uc StoreQuestionSolutionFile) Execute(solutionId string) error {
 	solution, err := uc.solutionsRepository.GetById(solutionId)
 
 	if err != nil {
-		uc.logger.Info(fmt.Sprintf("Solution %s not found", solutionId))
+		uc.logger.Info(err.Error())
+		return err
 	}
 
-	uc.ExecuteFor(solution)
+	return uc.ExecuteFor(solution)
 }
 
-func (uc StoreQuestionSolutionFile) ExecuteFor(solution *QuestionSolution) {
+func (uc StoreQuestionSolutionFile) ExecuteFor(solution *QuestionSolution) error {
 	question, err := uc.questionsRepository.GetById(solution.DailyQuestionId)
 	if err != nil {
 		uc.logger.Error(err.Error())
+		return err
 	}
 
 	commiter := NewGithubCommiter("dcp-solver", "dcp-solver@silvamedina.com.br")
@@ -38,20 +40,23 @@ func (uc StoreQuestionSolutionFile) ExecuteFor(solution *QuestionSolution) {
 	uc.storeFile(question_filename, question.Text, commiter)
 
 	solution_filename := fmt.Sprintf("dcp-solutions/%s/%s", questionDateFormatted, solution.Filename())
-	uc.storeFile(solution_filename, solution.FileContent(), commiter)
+	return uc.storeFile(solution_filename, solution.FileContent(), commiter)
 }
 
-func (uc StoreQuestionSolutionFile) storeFile(filepath string, content string, commiter Commiter) {
+func (uc StoreQuestionSolutionFile) storeFile(filepath string, content string, commiter Commiter) error {
 	err := uc.githubService.SaveFile(filepath, content, commiter)
 
 	if err != nil {
 		var fileExits exceptions.GithubFileAlreadyExistsError
 		if errors.As(err, &fileExits) {
-			return
+			return nil
 		}
 
 		uc.logger.Error(err.Error())
+		return err
 	}
+
+	return nil
 }
 
 func NewStoreQuestionSolutionFile() StoreQuestionSolutionFile {
