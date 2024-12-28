@@ -55,10 +55,11 @@ func newJsonApplicationLogger(envName string) *ApplicationLogger {
 func (appLogger *ApplicationLogger) addAppAttributes(args []any) []any {
 	configs := GetConfigs()
 	args = append(args, "environment", appLogger.envName)
-	args = append(args, "service_name", configs.SERVICE_NAME)
+	args = append(args, "deployment.environment", appLogger.envName)
+	args = append(args, "service.name", configs.SERVICE_NAME)
 
 	if hostname, err := os.Hostname(); err != nil {
-		args = append(args, "hostname", hostname)
+		args = append(args, "host.name", hostname)
 	}
 
 	if appLogger.currentContext != nil {
