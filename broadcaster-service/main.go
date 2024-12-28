@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"flag"
+	"fmt"
 	"net/http"
 	"time"
 
@@ -52,7 +53,34 @@ func startServer() {
 		for _, solution := range solutions {
 			uc.Execute(solution.Id)
 		}
+	})
 
+	http.HandleFunc("/solveQuestions", func(w http.ResponseWriter, r *http.Request) {
+		repo := daily_questions.NewQuestionsRepository()
+		questions, err := repo.GetAll()
+		if err != nil {
+			w.Write([]byte(err.Error()))
+		}
+
+		handler := daily_questions.NewSolveQuestionHandler()
+		for _, question := range questions {
+			logger.Info(fmt.Sprintf("Solving question %s", question.Id))
+			event := daily_questions.NewQuestionCreatedEvent(question)
+			go handler.Handle(event)
+		}
+	})
+
+	http.HandleFunc("/solveQuestion", func(w http.ResponseWriter, r *http.Request) {
+		questionId := r.URL.Query().Get("id")
+		repo := daily_questions.NewQuestionsRepository()
+		question, err := repo.GetById(questionId)
+		if err != nil {
+			w.Write([]byte(err.Error()))
+		}
+
+		handler := daily_questions.NewSolveQuestionHandler()
+		event := daily_questions.NewQuestionCreatedEvent(*question)
+		handler.Handle(event)
 	})
 
 	logger.Info("Started webserver at http://localhost:3551")

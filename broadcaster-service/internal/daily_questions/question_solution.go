@@ -17,7 +17,7 @@ type QuestionSolution struct {
 	SolutionCode        string
 	CreatedAt           time.Time
 	UpdatedAt           time.Time
-	DeletedAt           time.Time
+	Question            Question `gorm:"foreignKey:DailyQuestionId"`
 }
 
 // gorm before create hook

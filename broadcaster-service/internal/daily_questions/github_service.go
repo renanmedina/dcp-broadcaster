@@ -44,11 +44,15 @@ type Commiter struct {
 
 var ErrGithubFileAlreadyExists = errors.New("File already exists")
 
-func (s GithubFileStorageService) SaveFile(filename string, content string, author Commiter) error {
+func (s GithubFileStorageService) SaveFile(filename string, content string, author Commiter, commitMessage string) error {
+	if commitMessage == "" {
+		commitMessage = fmt.Sprintf("Adding file at %s", filename)
+	}
+
 	path := fmt.Sprintf("/contents/%s", filename)
 	encoder := base64.StdEncoding
 	params := map[string]interface{}{
-		"message":   fmt.Sprintf("Adding file at %s", filename),
+		"message":   commitMessage,
 		"committer": author,
 		"content":   encoder.EncodeToString([]byte(content)),
 	}

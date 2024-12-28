@@ -15,13 +15,13 @@ func configEventHandlers() map[string][]event_store.EventHandler {
 		QUESTION_CREATED_EVENT_NAME: {
 			event_store.NewSaveEventToStoreHandler(),
 			NewSendQuestionToUsersHandler(),
+			NewSolveQuestionHandler(),
 		},
 		QUESTION_SENT_EVENT_NAME: {
 			event_store.NewSaveEventToStoreHandler(),
 		},
 		QUESTION_BROADCASTED_EVENT_NAME: {
 			event_store.NewSaveEventToStoreHandler(),
-			NewSolveQuestionHandler(),
 		},
 		QUESTION_SOLVED_EVENT_NAME: {
 			event_store.NewSaveEventToStoreHandler(),

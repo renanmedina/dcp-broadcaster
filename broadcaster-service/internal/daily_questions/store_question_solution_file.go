@@ -44,7 +44,7 @@ func (uc StoreQuestionSolutionFile) ExecuteFor(solution *QuestionSolution) error
 }
 
 func (uc StoreQuestionSolutionFile) storeFile(filepath string, content string, commiter Commiter) error {
-	err := uc.githubService.SaveFile(filepath, content, commiter)
+	err := uc.githubService.SaveFile(filepath, content, commiter, "")
 
 	if err != nil {
 		var fileExits exceptions.GithubFileAlreadyExistsError

@@ -1,8 +1,6 @@
 package daily_questions
 
 import (
-	"fmt"
-
 	"github.com/renanmedina/dcp-broadcaster/internal/daily_questions/questions_solver"
 	"github.com/renanmedina/dcp-broadcaster/internal/event_store"
 	"github.com/renanmedina/dcp-broadcaster/utils"
@@ -20,7 +18,7 @@ func (uc SolveQuestion) Execute(questionId string, programmingLanguage string) {
 	question, err := uc.questionsRepository.GetById(questionId)
 
 	if err != nil {
-		uc.logger.Info(fmt.Sprintf("Question %s not found", questionId))
+		uc.logger.Error(err.Error())
 		return
 	}
 

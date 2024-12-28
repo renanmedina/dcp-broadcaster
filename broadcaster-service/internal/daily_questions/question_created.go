@@ -6,7 +6,7 @@ type QuestionCreated struct {
 	Question Question
 }
 
-func newQuestionCreated(question Question) QuestionCreated {
+func NewQuestionCreatedEvent(question Question) QuestionCreated {
 	return QuestionCreated{question}
 }
 
