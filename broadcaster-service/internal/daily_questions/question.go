@@ -19,6 +19,7 @@ type Question struct {
 	ReceivedAt      time.Time
 	CreatedAt       time.Time
 	UpdatedAt       time.Time
+	Solutions       []QuestionSolution `gorm:"foreignKey:DailyQuestionId"`
 }
 
 // gorm before create hook

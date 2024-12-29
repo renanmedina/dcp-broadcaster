@@ -41,7 +41,7 @@ func (r *QuestionsRepository) GetLatest() *Question {
 
 func (r *QuestionsRepository) GetAll() ([]Question, error) {
 	var questions []Question
-	result := r.db.WithContext(r.logger.GetCurrentContext()).Find(&questions)
+	result := r.db.Model(&Question{}).Preload("Solutions").WithContext(r.logger.GetCurrentContext()).Find(&questions)
 
 	if result.Error != nil {
 		return make([]Question, 0), result.Error
@@ -52,7 +52,7 @@ func (r *QuestionsRepository) GetAll() ([]Question, error) {
 
 func (r *QuestionsRepository) GetByOriginalId(id string) (*Question, error) {
 	var question Question
-	result := r.db.WithContext(r.logger.GetCurrentContext()).First(&question, "original_id = ?", id)
+	result := r.db.Model(&Question{}).Preload("Solutions").WithContext(r.logger.GetCurrentContext()).First(&question, "original_id = ?", id)
 
 	if result.Error != nil {
 		return nil, NewQuestionNotFound(fmt.Sprintf("Question with original id %s not found", id))
@@ -63,7 +63,7 @@ func (r *QuestionsRepository) GetByOriginalId(id string) (*Question, error) {
 
 func (r *QuestionsRepository) GetById(id string) (*Question, error) {
 	var question Question
-	result := r.db.WithContext(r.logger.GetCurrentContext()).First(&question, "id = ?", id)
+	result := r.db.Model(&Question{}).Preload("Solutions").WithContext(r.logger.GetCurrentContext()).First(&question, "id = ?", id)
 
 	if result.Error != nil {
 		return nil, NewQuestionNotFound(fmt.Sprintf("Question %s not found", id))
