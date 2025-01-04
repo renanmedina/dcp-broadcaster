@@ -1,3 +1,3 @@
-[submodule "whatsapp-api"]
-	path = whatsapp-api
-	url = git@github.com:renanmedina/whatsapp-api.git
+[submodule "whatsapp-service"]
+	path = whatsapp-service
+	url = git@github.com:renanmedina/whatsapp-service.git
