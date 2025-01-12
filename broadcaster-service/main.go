@@ -35,6 +35,7 @@ func setup() string {
 
 func startServer() {
 	logger := utils.GetApplicationLogger()
+	configs := utils.GetConfigs()
 
 	http.HandleFunc("/saveSolutionFile", func(w http.ResponseWriter, r *http.Request) {
 		solutionId := r.URL.Query().Get("id")
@@ -83,8 +84,9 @@ func startServer() {
 		handler.Handle(event)
 	})
 
-	logger.Info("Started webserver at http://localhost:3551")
-	err := http.ListenAndServe(":3551", nil)
+	logger.Info(fmt.Sprintf("Started webserver at http://localhost:%s", configs.WEBSERVER_PORT))
+	addr := fmt.Sprintf(":%s", configs.WEBSERVER_PORT)
+	err := http.ListenAndServe(addr, nil)
 
 	if err != nil {
 		panic(err)

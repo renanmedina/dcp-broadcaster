@@ -8,9 +8,10 @@ import (
 )
 
 const (
-	LOG_FORMAT_TEXT   = "text"
-	LOG_FORMAT_JSON   = "json"
-	DEFAULT_IMAP_PORT = 993
+	LOG_FORMAT_TEXT        = "text"
+	LOG_FORMAT_JSON        = "json"
+	DEFAULT_IMAP_PORT      = 993
+	DEFAULT_WEBSERVER_PORT = "3351"
 )
 
 type Configs struct {
@@ -27,6 +28,7 @@ type Configs struct {
 	OLLAMA_SERVICE_API_URL       string
 	GITHUB_API_TOKEN             string
 	GITHUB_REPO_API_URL          string
+	WEBSERVER_PORT               string
 	imapConfigs                  *ImapConfigs
 }
 
@@ -60,6 +62,12 @@ func loadConfigs() *Configs {
 		receiverServerPort = DEFAULT_IMAP_PORT // default
 	}
 
+	httpPort := os.Getenv("WEBSERVER_PORT")
+
+	if httpPort == "" {
+		httpPort = DEFAULT_WEBSERVER_PORT
+	}
+
 	return &Configs{
 		ENVIRONMENT:                  os.Getenv("ENVIRONMENT"),
 		DB_URL:                       os.Getenv("DB_URL"),
@@ -74,6 +82,7 @@ func loadConfigs() *Configs {
 		OLLAMA_SERVICE_API_URL:       os.Getenv("OLLAMA_SERVICE_API_URL"),
 		GITHUB_API_TOKEN:             os.Getenv("GITHUB_API_TOKEN"),
 		GITHUB_REPO_API_URL:          os.Getenv("GITHUB_REPO_API_URL"),
+		WEBSERVER_PORT:               httpPort,
 		imapConfigs: &ImapConfigs{
 			ServerUrl:  os.Getenv("RECEIVER_SERVER"),
 			ServerPort: receiverServerPort,
