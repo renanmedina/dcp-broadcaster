@@ -19,6 +19,21 @@
       }
     },
     {
+      "label": "▶︎ Run Application Queue Worker (Live Reload)",
+      "type": "shell",
+      "command": "cd broadcaster-service && $(go env GOPATH)/bin/air -build.args_bin=-mode=queue-worker",
+      "windows": {
+        "command": "cd broadcaster-service && $(go env GOPATH)/bin/air -build.args_bin=-mode=queue-worker"
+      },
+      "group": "none",
+      "presentation": {
+        "reveal": "always",
+        "panel": "new",
+        "close": true,
+        "group": "dcp-broadcaster-runtime"
+      }
+    },
+    {
       "label": "▶︎ Run Application Webserver (Live Reload)",
       "type": "shell",
       "command": "cd broadcaster-service && $(go env GOPATH)/bin/air -build.args_bin=-mode=webserver",

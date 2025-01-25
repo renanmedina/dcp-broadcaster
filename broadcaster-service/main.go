@@ -2,13 +2,13 @@ package main
 
 import (
 	"context"
-	"flag"
 	"fmt"
 	"net/http"
 	"time"
 
 	"github.com/renanmedina/dcp-broadcaster/internal/daily_questions"
 	"github.com/renanmedina/dcp-broadcaster/monitoring"
+	"github.com/renanmedina/dcp-broadcaster/task_queue"
 	"github.com/renanmedina/dcp-broadcaster/utils"
 )
 
@@ -18,19 +18,31 @@ func main() {
 	defer monitoringProvider.Shutdown(ctx)
 
 	mode := setup()
-	if mode == "worker" {
+	if mode == MODE_WORKER {
 		daily_questions.StartWorker(1 * time.Hour)
 		return
+	} else if mode == MODE_QUEUE_WORKER {
+		startQueueWork()
+		return
 	}
+
 	startServer()
 }
 
 func setup() string {
 	time.Local, _ = time.LoadLocation("America/Sao_Paulo")
 	utils.MigrateDb("up")
-	mode := flag.String("mode", "worker", "worker or webserver")
-	flag.Parse()
-	return *mode
+	return getModeFlag()
+}
+
+func startQueueWork() {
+	queueWorker := task_queue.InitializeQueueServer()
+	// Register tasks to be processed in queue worker
+	queueWorker.RegisterTaskProcessor(daily_questions.TypeSolveQuestionTask, daily_questions.SolveQuestionTaskProcessor)
+
+	if err := queueWorker.Run(); err != nil {
+		utils.GetApplicationLogger().Fatal(err.Error())
+	}
 }
 
 func startServer() {
@@ -63,7 +75,7 @@ func startServer() {
 			w.Write([]byte(err.Error()))
 		}
 
-		handler := daily_questions.NewSolveQuestionHandler()
+		handler := daily_questions.NewSolveQuestionEventHandler()
 		for _, question := range questions {
 			logger.Info(fmt.Sprintf("Solving question %s", question.Id))
 			event := daily_questions.NewQuestionCreatedEvent(question)
@@ -79,7 +91,7 @@ func startServer() {
 			w.Write([]byte(err.Error()))
 		}
 
-		handler := daily_questions.NewSolveQuestionHandler()
+		handler := daily_questions.NewSolveQuestionEventHandler()
 		event := daily_questions.NewQuestionCreatedEvent(*question)
 		handler.Handle(event)
 	})

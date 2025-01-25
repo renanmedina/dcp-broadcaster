@@ -1,8 +1,6 @@
 package daily_questions
 
-import (
-	"github.com/renanmedina/dcp-broadcaster/internal/event_store"
-)
+import "github.com/renanmedina/dcp-broadcaster/internal/event_store"
 
 func newEventPublisher() *event_store.EventPublisher {
 	return event_store.NewEventPublisherWith(
@@ -15,7 +13,7 @@ func configEventHandlers() map[string][]event_store.EventHandler {
 		QUESTION_CREATED_EVENT_NAME: {
 			event_store.NewSaveEventToStoreHandler(),
 			NewSendQuestionToUsersHandler(),
-			NewSolveQuestionHandler(),
+			NewSolveQuestionEventHandler(),
 		},
 		QUESTION_SENT_EVENT_NAME: {
 			event_store.NewSaveEventToStoreHandler(),
