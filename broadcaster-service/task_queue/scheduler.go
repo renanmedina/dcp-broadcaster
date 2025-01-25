@@ -9,14 +9,19 @@ var queueClient *asynq.Client
 
 func init() {
 	if queueClient == nil {
-		queueClient = NewQueueClient(utils.GetConfigs().TASKS_QUEUE_DB_URL)
+		queueClient = NewQueueClient()
 	}
 }
 
-func NewQueueClient(dbUrl string) *asynq.Client {
-	return asynq.NewClient(asynq.RedisClientOpt{Addr: dbUrl})
+func NewQueueClient() *asynq.Client {
+	return asynq.NewClient(GetQueueClientOptions())
 }
 
 func GetTasksScheduler() *asynq.Client {
 	return queueClient
+}
+
+func GetQueueClientOptions() asynq.RedisClientOpt {
+	addr := utils.GetConfigs().TASKS_QUEUE_DB_URL
+	return asynq.RedisClientOpt{Addr: addr}
 }

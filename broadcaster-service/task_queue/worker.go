@@ -2,7 +2,6 @@ package task_queue
 
 import (
 	"github.com/hibiken/asynq"
-	"github.com/renanmedina/dcp-broadcaster/utils"
 )
 
 type QueueWorker struct {
@@ -31,14 +30,14 @@ func init() {
 }
 
 func InitializeQueueServer() *QueueWorker {
-	srv := newQueueServer(utils.GetConfigs().TASKS_QUEUE_DB_URL)
+	srv := newQueueServer()
 	mux := asynq.NewServeMux()
 	return &QueueWorker{srv, mux}
 }
 
-func newQueueServer(redisAddr string) *asynq.Server {
+func newQueueServer() *asynq.Server {
 	return asynq.NewServer(
-		asynq.RedisClientOpt{Addr: redisAddr},
+		GetQueueClientOptions(),
 		asynq.Config{
 			// Specify how many concurrent workers to use
 			Concurrency: 10,

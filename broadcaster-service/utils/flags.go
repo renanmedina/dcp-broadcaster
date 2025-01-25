@@ -1,4 +1,4 @@
-package main
+package utils
 
 import "flag"
 
@@ -9,7 +9,7 @@ const (
 	MODES_HELP        = "worker, queue-worker or webserver"
 )
 
-func getModeFlag() string {
+func GetModeFlag() string {
 	mode := flag.String("mode", MODE_WORKER, MODES_HELP)
 	flag.Parse()
 	return *mode

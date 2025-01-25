@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/hibiken/asynqmon"
 	"github.com/renanmedina/dcp-broadcaster/internal/daily_questions"
 	"github.com/renanmedina/dcp-broadcaster/monitoring"
 	"github.com/renanmedina/dcp-broadcaster/task_queue"
@@ -18,10 +19,10 @@ func main() {
 	defer monitoringProvider.Shutdown(ctx)
 
 	mode := setup()
-	if mode == MODE_WORKER {
+	if mode == utils.MODE_WORKER {
 		daily_questions.StartWorker(1 * time.Hour)
 		return
-	} else if mode == MODE_QUEUE_WORKER {
+	} else if mode == utils.MODE_QUEUE_WORKER {
 		startQueueWork()
 		return
 	}
@@ -32,7 +33,7 @@ func main() {
 func setup() string {
 	time.Local, _ = time.LoadLocation("America/Sao_Paulo")
 	utils.MigrateDb("up")
-	return getModeFlag()
+	return utils.GetModeFlag()
 }
 
 func startQueueWork() {
@@ -95,6 +96,13 @@ func startServer() {
 		event := daily_questions.NewQuestionCreatedEvent(*question)
 		handler.Handle(event)
 	})
+
+	asynqmonConfig := asynqmon.New(asynqmon.Options{
+		RootPath:     "/monitoring", // RootPath specifies the root for asynqmon app
+		RedisConnOpt: task_queue.GetQueueClientOptions(),
+	})
+
+	http.Handle(asynqmonConfig.RootPath()+"/", asynqmonConfig)
 
 	logger.Info(fmt.Sprintf("Started webserver at http://localhost:%s", configs.WEBSERVER_PORT))
 	addr := fmt.Sprintf(":%s", configs.WEBSERVER_PORT)
