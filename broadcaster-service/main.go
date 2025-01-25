@@ -99,7 +99,7 @@ func startServer() {
 	})
 
 	asynqmonConfig := asynqmon.New(asynqmon.Options{
-		RootPath:     "/monitoring", // RootPath specifies the root for asynqmon app
+		RootPath:     "/tasks-queue", // RootPath specifies the root for asynqmon app
 		RedisConnOpt: task_queue.GetQueueClientOptions(),
 	})
 
