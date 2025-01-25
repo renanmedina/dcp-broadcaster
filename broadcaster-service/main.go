@@ -17,6 +17,7 @@ func main() {
 	ctx := context.Background()
 	monitoringProvider := monitoring.InitTracer()
 	defer monitoringProvider.Shutdown(ctx)
+	defer task_queue.GetTasksScheduler().Close()
 
 	mode := setup()
 	if mode == utils.MODE_WORKER {
