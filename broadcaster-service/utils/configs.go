@@ -17,6 +17,7 @@ const (
 type Configs struct {
 	ENVIRONMENT                  string
 	DB_URL                       string
+	TASKS_QUEUE_DB_URL           string
 	DISCORD_BOT_TOKEN            string
 	WHATSAPP_API_URL             string
 	WHATSAPP_API_TOKEN           string
@@ -71,6 +72,7 @@ func loadConfigs() *Configs {
 	return &Configs{
 		ENVIRONMENT:                  os.Getenv("ENVIRONMENT"),
 		DB_URL:                       os.Getenv("DB_URL"),
+		TASKS_QUEUE_DB_URL:           os.Getenv("TASKS_QUEUE_DB_URL"),
 		DISCORD_BOT_TOKEN:            os.Getenv("DISCORD_BOT_TOKEN"),
 		WHATSAPP_API_URL:             os.Getenv("WHATSAPP_API_URL"),
 		WHATSAPP_API_TOKEN:           os.Getenv("WHATSAPP_API_TOKEN"),

@@ -19,10 +19,20 @@ services:
       - "5433:5432"
     volumes:
       - ./broadcaster-service/db/create-db.sql:/docker-entrypoint-initdb.d/create_database.sql
-    networks:
-      - dcp-broadcaster-network
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+  dcp-broadcaster-redis:
+    image: redis:7.4.2-alpine
+    container_name: dcp-broadcaster-redis
+    hostname: dcp-broadcaster-redis
+    restart: always
+    ports:
+      - "6378:6379"
+    healthcheck:
+      test: [ "CMD", "redis-cli", "--raw", "incr", "ping" ]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -31,71 +41,54 @@ services:
     container_name: dcp-broadcaster-metabase
     ports: 
       - "3000:3000"
-    networks:
-      - dcp-broadcaster-network
     restart: "always"
-  dcp-broadcaster-whatsapp-api:
-    container_name: dcp-broadcaster-whatsapp-api
-    hostname: dcp-broadcaster-whatsapp-api
-    build: ./whatsapp-api/
+  dcp-broadcaster-whatsapp-service:
+    container_name: dcp-broadcaster-whatsapp-service
+    hostname: dcp-broadcaster-whatsapp-service
+    build: ./whatsapp-service/
+    env_file: ./whatsapp-service.env
     ports: 
       - "3550:3550"
-    environment:
-      - API_KEY=local_whatsapp_api_key # OPTIONAL
-      - BASE_WEBHOOK_URL=http://localhost:3550/localCallbackExample
-      - ENABLE_LOCAL_CALLBACK_EXAMPLE=FALSE # OPTIONAL, NOT RECOMMENDED FOR PRODUCTION
-      - MAX_ATTACHMENT_SIZE=5000000 # IN BYTES
-      - SET_MESSAGES_AS_SEEN=TRUE # WILL MARK THE MESSAGES AS READ AUTOMATICALLY
-      - PORT=3550
-      # ALL CALLBACKS: auth_failure|authenticated|call|change_state|disconnected|group_join|group_leave|group_update|loading_screen|media_uploaded|message|message_ack|message_create|message_reaction|message_revoke_everyone|qr|ready|contact_changed
-      - DISABLED_CALLBACKS=message_ack|message_reaction  # PREVENT SENDING CERTAIN TYPES OF CALLBACKS BACK TO THE WEBHOOK
-      - ENABLE_SWAGGER_ENDPOINT=TRUE # OPTIONAL, ENABLES THE /api-docs ENDPOINT
-      # - RATE_LIMIT_MAX=1000 # OPTIONAL, THE MAXIUM NUMBER OF CONNECTIONS TO ALLOW PER TIME FRAME
-      # - RATE_LIMIT_WINDOW_MS=1000 # OPTIONAL, TIME FRAME FOR WHICH REQUESTS ARE CHECKED IN MS
-      # - WEB_VERSION='2.2328.5' # OPTIONAL, THE VERSION OF WHATSAPP WEB TO USE
-      # - WEB_VERSION_CACHE_TYPE=none # OPTIONAL, DETERMINES WHERE TO GET THE WHATSAPP WEB VERSION(local, remote or none), DEFAULT 'none'
-      # - RECOVER_SESSIONS=TRUE # OPTIONAL, SHOULD WE RECOVER THE SESSION IN CASE OF PAGE FAILURES
     volumes:
-      - ./whatsapp-api/sessions:/usr/src/app/sessions # Mount the local ./sessions/ folder to the container's /usr/src/app/sessions folder
-    networks:
-      - dcp-broadcaster-network
+      - ./whatsapp-service/sessions:/usr/src/app/sessions # Mount the local ./sessions/ folder to the container's /usr/src/app/sessions folder
     healthcheck:
       test: ["CMD-SHELL", 'netstat -ltn | grep -c ":3550"']
       interval: 5s
       timeout: 5s
       retries: 5
     restart: "always"
-  dcp-broadcaster:
+  dcp-broadcaster-worker:
     container_name: dcp-broadcaster-worker
     build: ./broadcaster-service/
-    environment:
-      - ENV_NAME=development
-      - ENVIRONMENT=development
-      - SERVICE_NAME=dcp-broadcaster-worker
-      - OTEL_EXPORTER_OTLP_ENDPOINT=signoz-otel-collector:4317
-      - DB_URL=postgres://postgres:dcp-broadcaster-pwd@dcp-broadcaster-db:5432/dcp_broadcaster?sslmode=disable
-      - DISCORD_BOT_TOKEN=
-      - DISCORD_API_URL=https://discord.com/api/v10
-      - WHATSAPP_API_URL=http://dcp-broadcaster-whatsapp-api:3550
-      - WHATSAPP_API_TOKEN=local_whatsapp_api_key
-      - WHATSAPP_SESSION_ID=f8377d8d-a589-4242-9ba6-9486a04ef80c
-      - LOG_FORMAT=json
-      - RECEIVER_SERVER=imap.hostinger.com
-      - RECEIVER_SERVER_PORT=993
-      - RECEIVER_USERNAME=dcp-broadcaster@silvamedina.com.br
-      - RECEIVER_PASSWORD=
-      - MIGRATIONS_PATH=file://db/migrations
-      - OLLAMA_SERVICE_API_URL="http://dcp-ollama-service:11434/api"
+    env_file: ./dcp-broadcaster.env
     links:
       - dcp-broadcaster-db
-      - dcp-broadcaster-whatsapp-api
+      - dcp-broadcaster-whatsapp-service
+      - dcp-broadcaster-redis
     depends_on:
       dcp-broadcaster-db:
         condition: service_healthy
-      dcp-broadcaster-whatsapp-api:
+      dcp-broadcaster-whatsapp-service:
         condition: service_healthy
-    networks:
-      - dcp-broadcaster-network
+    restart: "always"
+  dcp-broadcaster-webserver:
+    container_name: dcp-broadcaster-webserver
+    build: ./broadcaster-service/
+    env_file: ./dcp-broadcaster.env
+    ports:
+      - 3351:3351
+    command: ["./dcp-broadcaster", "-mode=webserver"]
+    links:
+      - dcp-broadcaster-db
+      - dcp-broadcaster-whatsapp-service
+      - dcp-broadcaster-redis
+    depends_on:
+      dcp-broadcaster-db:
+        condition: service_healthy
+      dcp-broadcaster-whatsapp-service:
+        condition: service_healthy
+      dcp-broadcaster-redis:
+        condition: service_healthy
     restart: "always"
   dcp-ollama-service:
     image: ollama/ollama:latest
@@ -112,15 +105,13 @@ services:
     # command: "-m /app/models/llama-3.2-1B.gguf"
     volumes:
       - ./ollama-service:/root/.ollama
-    networks:
-      - dcp-broadcaster-network
     restart: "always"
 volumes:
   db-data:
     driver: "local"
-networks:
-  dcp-broadcaster-network:
-    name: "dcp-broadcaster-network"
-    driver: bridge
-    driver_opts:
-      com.docker.network.bridge.host_binding_ipv4: "127.0.0.1"
+# networks:
+#   dcp-broadcaster-network:
+#     name: "dcp-broadcaster-network"
+#     driver: bridge
+#     driver_opts:
+#       com.docker.network.bridge.host_binding_ipv4: "127.0.0.1"
