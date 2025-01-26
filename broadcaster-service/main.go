@@ -41,6 +41,7 @@ func startQueueWork() {
 	queueWorker := task_queue.InitializeQueueServer()
 	// Register tasks to be processed in queue worker
 	queueWorker.RegisterTaskProcessor(daily_questions.TypeSolveQuestionTask, daily_questions.SolveQuestionTaskProcessor)
+	queueWorker.RegisterTaskProcessor(daily_questions.TypeStoreQuestionSolutionFileTask, daily_questions.StoreQuestionSolutionFileTaskProcessor)
 
 	if err := queueWorker.Run(); err != nil {
 		utils.GetApplicationLogger().Fatal(err.Error())
