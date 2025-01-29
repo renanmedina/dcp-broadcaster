@@ -44,9 +44,9 @@ func newQueueServer() *asynq.Server {
 			// Optionally specify multiple queues with different priority.
 			Queues: map[string]int{
 				QUEUE_MESSAGES_DELIVERIES: 3,
-				QUEUE_QUESTIONS_SOLUTIONS: 3,
+				QUEUE_QUESTIONS_SOLUTIONS: 1,
 				QUEUE_QUESTIONS_STORAGE:   3,
-				QUEUE_DEFAULT:             1,
+				QUEUE_DEFAULT:             3,
 			},
 		},
 	)

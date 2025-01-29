@@ -9,6 +9,8 @@ services:
   dcp-broadcaster-db:
     image: postgres:16-alpine
     container_name: dcp-broadcaster-db
+    networks:
+      - dcp-broadcaster-network
     hostname: dcp-broadcaster-db
     restart: always
     environment:
@@ -27,6 +29,8 @@ services:
   dcp-broadcaster-redis:
     image: redis:7.4.2-alpine
     container_name: dcp-broadcaster-redis
+    networks:
+      - dcp-broadcaster-network
     hostname: dcp-broadcaster-redis
     restart: always
     ports:
@@ -39,11 +43,15 @@ services:
   dcp-broadcaster-metabase:
     image: metabase/metabase:latest
     container_name: dcp-broadcaster-metabase
+    networks:
+      - dcp-broadcaster-network
     ports: 
       - "3000:3000"
     restart: "always"
   dcp-broadcaster-whatsapp-service:
     container_name: dcp-broadcaster-whatsapp-service
+    networks:
+      - dcp-broadcaster-network
     hostname: dcp-broadcaster-whatsapp-service
     build: ./whatsapp-service/
     env_file: ./whatsapp-service.env
@@ -59,12 +67,15 @@ services:
     restart: "always"
   dcp-broadcaster-worker:
     container_name: dcp-broadcaster-worker
+    networks:
+      - dcp-broadcaster-network
     build: ./broadcaster-service/
     env_file: ./dcp-broadcaster.env
     links:
       - dcp-broadcaster-db
       - dcp-broadcaster-whatsapp-service
       - dcp-broadcaster-redis
+      - dcp-ollama-service
     depends_on:
       dcp-broadcaster-db:
         condition: service_healthy
@@ -73,6 +84,8 @@ services:
     restart: "always"
   dcp-broadcaster-webserver:
     container_name: dcp-broadcaster-webserver
+    networks:
+      - dcp-broadcaster-network
     build: ./broadcaster-service/
     env_file: ./dcp-broadcaster.env
     ports:
@@ -82,6 +95,27 @@ services:
       - dcp-broadcaster-db
       - dcp-broadcaster-whatsapp-service
       - dcp-broadcaster-redis
+      - dcp-ollama-service
+    depends_on:
+      dcp-broadcaster-db:
+        condition: service_healthy
+      dcp-broadcaster-whatsapp-service:
+        condition: service_healthy
+      dcp-broadcaster-redis:
+        condition: service_healthy
+    restart: "always"
+  dcp-broadcaster-queues-worker:
+    container_name: dcp-broadcaster-queues-worker
+    networks:
+      - dcp-broadcaster-network
+    build: ./broadcaster-service/
+    env_file: ./dcp-broadcaster.env
+    command: ["./dcp-broadcaster", "-mode=queue-worker"]
+    links:
+      - dcp-broadcaster-db
+      - dcp-broadcaster-whatsapp-service
+      - dcp-broadcaster-redis
+      - dcp-ollama-service
     depends_on:
       dcp-broadcaster-db:
         condition: service_healthy
@@ -93,6 +127,8 @@ services:
   dcp-ollama-service:
     image: ollama/ollama:latest
     container_name: dcp-ollama-service
+    networks:
+      - dcp-broadcaster-network
     deploy:
       resources:
         reservations:
@@ -109,9 +145,9 @@ services:
 volumes:
   db-data:
     driver: "local"
-# networks:
-#   dcp-broadcaster-network:
-#     name: "dcp-broadcaster-network"
-#     driver: bridge
-#     driver_opts:
-#       com.docker.network.bridge.host_binding_ipv4: "127.0.0.1"
+networks:
+  dcp-broadcaster-network:
+    name: "dcp-broadcaster-network"
+    driver: bridge
+    driver_opts:
+      com.docker.network.bridge.host_binding_ipv4: "127.0.0.1"
