@@ -88,6 +88,8 @@ services:
       - dcp-broadcaster-network
     build: ./broadcaster-service/
     env_file: ./dcp-broadcaster.env
+    environment:
+      - SERVICE_NAME=dcp-broadcaster-webserver
     ports:
       - 3351:3351
     command: ["./dcp-broadcaster", "-mode=webserver"]
@@ -110,6 +112,8 @@ services:
       - dcp-broadcaster-network
     build: ./broadcaster-service/
     env_file: ./dcp-broadcaster.env
+    environment:
+      - SERVICE_NAME=dcp-broadcaster-queues-worker
     command: ["./dcp-broadcaster", "-mode=queue-worker"]
     links:
       - dcp-broadcaster-db
