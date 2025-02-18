@@ -20,7 +20,7 @@ services:
     ports:
       - "5433:5432"
     volumes:
-      - ./broadcaster-service/db/create-db.sql:/docker-entrypoint-initdb.d/create_database.sql
+      - ../../services/broadcaster-service/db/create-db.sql:/docker-entrypoint-initdb.d/create_database.sql
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
       interval: 5s
@@ -53,24 +53,26 @@ services:
     networks:
       - dcp-broadcaster-network
     hostname: dcp-broadcaster-whatsapp-service
-    build: ./whatsapp-service/
+    build: ../../services/whatsapp-service/
     env_file: ./whatsapp-service.env
     ports: 
       - "3550:3550"
     volumes:
-      - ./whatsapp-service/sessions:/usr/src/app/sessions # Mount the local ./sessions/ folder to the container's /usr/src/app/sessions folder
+      - ../../services/whatsapp-service/sessions:/usr/src/app/sessions # Mount the local ./sessions/ folder to the container's /usr/src/app/sessions folder
     healthcheck:
       test: ["CMD-SHELL", 'netstat -ltn | grep -c ":3550"']
       interval: 5s
       timeout: 5s
       retries: 5
     restart: "always"
-  dcp-broadcaster-worker:
-    container_name: dcp-broadcaster-worker
+  dcp-broadcaster-questions-receiver:
+    container_name: dcp-broadcaster-questions-receiver
     networks:
       - dcp-broadcaster-network
-    build: ./broadcaster-service/
+    build: ../../services/broadcaster-service/
     env_file: ./dcp-broadcaster.env
+    environment:
+      - SERVICE_NAME=dcp-broadcaster-questions-receiver
     links:
       - dcp-broadcaster-db
       - dcp-broadcaster-whatsapp-service
@@ -86,7 +88,7 @@ services:
     container_name: dcp-broadcaster-webserver
     networks:
       - dcp-broadcaster-network
-    build: ./broadcaster-service/
+    build: ../../services/broadcaster-service/
     env_file: ./dcp-broadcaster.env
     environment:
       - SERVICE_NAME=dcp-broadcaster-webserver
@@ -110,7 +112,7 @@ services:
     container_name: dcp-broadcaster-queues-worker
     networks:
       - dcp-broadcaster-network
-    build: ./broadcaster-service/
+    build: ../../services/broadcaster-service/
     env_file: ./dcp-broadcaster.env
     environment:
       - SERVICE_NAME=dcp-broadcaster-queues-worker

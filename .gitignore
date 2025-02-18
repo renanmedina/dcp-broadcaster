@@ -1,2 +1,2 @@
-dcp-broadcaster.env
-whatsapp-service.env
+deployment/docker/dcp-broadcaster.env
+deployment/docker/whatsapp-service.env

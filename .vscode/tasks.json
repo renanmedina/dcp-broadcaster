@@ -6,9 +6,9 @@
     {
       "label": "▶︎ Run Application Worker (Live Reload)",
       "type": "shell",
-      "command": "cd broadcaster-service && $(go env GOPATH)/bin/air",
+      "command": "cd services/broadcaster-service && $(go env GOPATH)/bin/air",
       "windows": {
-        "command": "cd broadcaster-service && $(go env GOPATH)/bin/air"
+        "command": "cd services/broadcaster-service && $(go env GOPATH)/bin/air"
       },
       "group": "none",
       "presentation": {
@@ -21,9 +21,9 @@
     {
       "label": "▶︎ Run Application Queue Worker (Live Reload)",
       "type": "shell",
-      "command": "cd broadcaster-service && $(go env GOPATH)/bin/air -build.args_bin=-mode=queue-worker",
+      "command": "cd services/broadcaster-service && $(go env GOPATH)/bin/air -build.args_bin=-mode=queue-worker",
       "windows": {
-        "command": "cd broadcaster-service && $(go env GOPATH)/bin/air -build.args_bin=-mode=queue-worker"
+        "command": "cd services/broadcaster-service && $(go env GOPATH)/bin/air -build.args_bin=-mode=queue-worker"
       },
       "group": "none",
       "presentation": {
@@ -36,9 +36,24 @@
     {
       "label": "▶︎ Run Application Webserver (Live Reload)",
       "type": "shell",
-      "command": "cd broadcaster-service && $(go env GOPATH)/bin/air -build.args_bin=-mode=webserver",
+      "command": "cd services/broadcaster-service && $(go env GOPATH)/bin/air -build.args_bin=-mode=webserver",
       "windows": {
-        "command": "cd broadcaster-service && $(go env GOPATH)/bin/air -build.args_bin=-mode=webserver"
+        "command": "cd services/broadcaster-service && $(go env GOPATH)/bin/air -build.args_bin=-mode=webserver"
+      },
+      "group": "none",
+      "presentation": {
+        "reveal": "always",
+        "panel": "new",
+        "close": true,
+        "group": "dcp-broadcaster-runtime"
+      }
+    },
+    {
+      "label": "▶︎ Run Whatsapp Service (Live Reload)",
+      "type": "shell",
+      "command": "cd services/whatsapp-service && npm run start",
+      "windows": {
+        "command": "cd services/whatsapp-service && npm run start"
       },
       "group": "none",
       "presentation": {
