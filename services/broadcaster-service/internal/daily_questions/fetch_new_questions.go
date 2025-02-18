@@ -55,8 +55,6 @@ func (uc *FetchNewQuestions) processQuestions(questions []Question, trace *monit
 	newlyProcessed := 0
 
 	for _, question := range questions {
-		trace.NewChildSpan(fmt.Sprintf("FetchNewQuestions.processQuestions[%s]", question.Id))
-
 		question, err := uc.questionsRepository.Save(question)
 
 		if err != nil {
