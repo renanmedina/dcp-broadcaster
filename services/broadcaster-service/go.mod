@@ -6,6 +6,7 @@ require (
 	github.com/BrianLeishman/go-imap v0.1.7
 	github.com/golang-migrate/migrate/v4 v4.18.1
 	github.com/google/uuid v1.6.0
+	github.com/grafana/pyroscope-go/godeltaprof v0.1.8
 	github.com/hibiken/asynq v0.25.1
 	github.com/hibiken/asynqmon v0.7.2
 	github.com/joho/godotenv v1.5.1
@@ -44,6 +45,7 @@ require (
 	github.com/jhillyerd/enmime v0.10.0 // indirect
 	github.com/jinzhu/inflection v1.0.0 // indirect
 	github.com/jinzhu/now v1.1.5 // indirect
+	github.com/klauspost/compress v1.17.8 // indirect
 	github.com/logrusorgru/aurora v2.0.3+incompatible // indirect
 	github.com/mattn/go-runewidth v0.0.13 // indirect
 	github.com/olekukonko/tablewriter v0.0.5 // indirect

@@ -6,6 +6,9 @@ import (
 	"net/http"
 	"time"
 
+	_ "net/http/pprof"
+
+	_ "github.com/grafana/pyroscope-go/godeltaprof/http/pprof"
 	"github.com/hibiken/asynqmon"
 	"github.com/renanmedina/dcp-broadcaster/internal/daily_questions"
 	"github.com/renanmedina/dcp-broadcaster/monitoring"
