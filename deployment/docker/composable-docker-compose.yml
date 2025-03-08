@@ -1,0 +1,86 @@
+version: "3.9"
+x-default-logging: &logging
+  driver: "json-file"
+  options:
+    max-size: "5m"
+    max-file: "2"
+    tag: "{{.Name}}"
+services:
+  dcp-broadcaster-questions-receiver:
+    container_name: dcp-broadcaster-questions-receiver
+    build: ../../services/broadcaster-service/
+    environment:
+      - ENV_NAME=${ENV_NAME}
+      - WEBSERVER_PORT=${WEBSERVER_PORT}
+      - ENVIRONMENT=${ENVIRONMENT}
+      - SERVICE_NAME=dcp-broadcaster-questions-receiver
+      - OTEL_EXPORTER_OTLP_ENDPOINT=${OTEL_EXPORTER_OTLP_ENDPOINT}
+      - DB_URL=${DB_URL}
+      - TASKS_QUEUE_DB_URL=${TASKS_QUEUE_DB_URL}
+      - WHATSAPP_API_URL=${WHATSAPP_API_URL}
+      - WHATSAPP_API_TOKEN=${WHATSAPP_API_TOKEN}
+      - WHATSAPP_SESSION_ID=${WHATSAPP_SESSION_ID}
+      - LOG_FORMAT=${LOG_FORMAT}
+      - RECEIVER_SERVER=${RECEIVER_SERVER}
+      - RECEIVER_SERVER_PORT=${RECEIVER_SERVER_PORT}
+      - RECEIVER_USERNAME=${RECEIVER_USERNAME}
+      - RECEIVER_PASSWORD=${RECEIVER_PASSWORD}
+      - MIGRATIONS_PATH=${MIGRATIONS_PATH}
+      - OLLAMA_SERVICE_API_URL=${OLLAMA_SERVICE_API_URL}
+      - GITHUB_API_TOKEN=${GITHUB_API_TOKEN}
+      - GITHUB_REPO_API_URL=${GITHUB_REPO_API_URL}
+    restart: "always"
+  dcp-broadcaster-webserver:
+    container_name: dcp-broadcaster-webserver
+    build: ../../services/broadcaster-service/
+    environment:
+      - ENV_NAME=${ENV_NAME}
+      - WEBSERVER_PORT=${WEBSERVER_PORT}
+      - ENVIRONMENT=${ENVIRONMENT}
+      - SERVICE_NAME=dcp-broadcaster-webserver
+      - OTEL_EXPORTER_OTLP_ENDPOINT=${OTEL_EXPORTER_OTLP_ENDPOINT}
+      - DB_URL=${DB_URL}
+      - TASKS_QUEUE_DB_URL=${TASKS_QUEUE_DB_URL}
+      - WHATSAPP_API_URL=${WHATSAPP_API_URL}
+      - WHATSAPP_API_TOKEN=${WHATSAPP_API_TOKEN}
+      - WHATSAPP_SESSION_ID=${WHATSAPP_SESSION_ID}
+      - LOG_FORMAT=${LOG_FORMAT}
+      - RECEIVER_SERVER=${RECEIVER_SERVER}
+      - RECEIVER_SERVER_PORT=${RECEIVER_SERVER_PORT}
+      - RECEIVER_USERNAME=${RECEIVER_USERNAME}
+      - RECEIVER_PASSWORD=${RECEIVER_PASSWORD}
+      - MIGRATIONS_PATH=${MIGRATIONS_PATH}
+      - OLLAMA_SERVICE_API_URL=${OLLAMA_SERVICE_API_URL}
+      - GITHUB_API_TOKEN=${GITHUB_API_TOKEN}
+      - GITHUB_REPO_API_URL=${GITHUB_REPO_API_URL}
+    # environment:
+    #   - SERVICE_NAME=dcp-broadcaster-webserver
+    ports:
+      - 3351:3351
+    command: ["./dcp-broadcaster", "-mode=webserver"]
+    restart: "always"
+  dcp-broadcaster-queues-worker:
+    container_name: dcp-broadcaster-queues-worker
+    build: ../../services/broadcaster-service/
+    environment:
+      - ENV_NAME=${ENV_NAME}
+      - WEBSERVER_PORT=${WEBSERVER_PORT}
+      - ENVIRONMENT=${ENVIRONMENT}
+      - SERVICE_NAME=dcp-broadcaster-queues-worker
+      - OTEL_EXPORTER_OTLP_ENDPOINT=${OTEL_EXPORTER_OTLP_ENDPOINT}
+      - DB_URL=${DB_URL}
+      - TASKS_QUEUE_DB_URL=${TASKS_QUEUE_DB_URL}
+      - WHATSAPP_API_URL=${WHATSAPP_API_URL}
+      - WHATSAPP_API_TOKEN=${WHATSAPP_API_TOKEN}
+      - WHATSAPP_SESSION_ID=${WHATSAPP_SESSION_ID}
+      - LOG_FORMAT=${LOG_FORMAT}
+      - RECEIVER_SERVER=${RECEIVER_SERVER}
+      - RECEIVER_SERVER_PORT=${RECEIVER_SERVER_PORT}
+      - RECEIVER_USERNAME=${RECEIVER_USERNAME}
+      - RECEIVER_PASSWORD=${RECEIVER_PASSWORD}
+      - MIGRATIONS_PATH=${MIGRATIONS_PATH}
+      - OLLAMA_SERVICE_API_URL=${OLLAMA_SERVICE_API_URL}
+      - GITHUB_API_TOKEN=${GITHUB_API_TOKEN}
+      - GITHUB_REPO_API_URL=${GITHUB_REPO_API_URL}
+    command: ["./dcp-broadcaster", "-mode=queue-worker"]
+    restart: "always"
