@@ -62,11 +62,11 @@ func (s WhatsappService) sendMessageRequest(message string, chatId string) error
 
 	time.Sleep(time.Second * 45)
 
-	url := fmt.Sprintf("%s/client/sendMessage/%s", s.configs.apiUrl, s.configs.sessionId)
+	url := fmt.Sprintf("%s/sendText", s.configs.apiUrl)
 	bodyParams, err := json.Marshal(map[string]string{
-		"chatId":      chatId,
-		"contentType": "string",
-		"content":     message,
+		"chatId":  chatId,
+		"text":    message,
+		"session": s.configs.sessionId,
 	})
 
 	if err != nil {
@@ -103,7 +103,7 @@ func (s WhatsappService) sendMessageRequest(message string, chatId string) error
 }
 
 func (s WhatsappService) restartSession() error {
-	url := fmt.Sprintf("%s/session/restart/%s", s.configs.apiUrl, s.configs.sessionId)
+	url := fmt.Sprintf("%s/sessions/%s/restart", s.configs.apiUrl, s.configs.sessionId)
 	request, err := http.NewRequest("GET", url, nil)
 
 	if err != nil {
